@@ -1,6 +1,7 @@
 package com.personal.sagapattern.orchestration.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.personal.sagapattern.orchestration.exception.OrchestrationException;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,11 @@ public class SagaOrchestrationService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public void orchestrate(String event, List<String> eventTopics) {
+        if (event == null) {
+            logger.error("FAILED ::: Failed to orchestrate event, message was empty/null");
+            throw new OrchestrationException("Failed to orchestrate event, message was empty/null");
+        }
+
         logger.info("START ::: Event triggered");
 
         for (String eventTopic : eventTopics) {

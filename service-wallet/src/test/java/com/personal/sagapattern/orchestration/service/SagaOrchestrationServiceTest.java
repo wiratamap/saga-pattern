@@ -1,19 +1,22 @@
 package com.personal.sagapattern.orchestration.service;
 
+import com.personal.sagapattern.orchestration.exception.OrchestrationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class SagaOrchestrationServiceTest {
@@ -36,5 +39,24 @@ class SagaOrchestrationServiceTest {
         sagaOrchestrationService.orchestrate(anEvent, eventTopics);
 
         verify(kafkaTemplate, times(3)).send(anyString(), eq(anEvent));
+    }
+
+    @Test
+    void orchestrate_shouldNotInvokeKafkaTemplateSend_whenNoEventTopicsAreProvided() {
+        String anEvent = "an_event";
+
+        sagaOrchestrationService.orchestrate(anEvent, Collections.emptyList());
+
+        verify(kafkaTemplate, never()).send(anyString(), eq(anEvent));
+    }
+
+    @Test
+    void orchestrate_shouldThrowOrchestrationException_whenEventIsEmptyOrNull() {
+        String anEvent = "an_event";
+
+        Executable orchestrateAction = () -> sagaOrchestrationService.orchestrate(null, Collections.emptyList());
+
+        assertThrows(OrchestrationException.class, orchestrateAction);
+        verify(kafkaTemplate, never()).send(anyString(), eq(anEvent));
     }
 }
