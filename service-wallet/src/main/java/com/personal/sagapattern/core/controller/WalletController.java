@@ -1,5 +1,6 @@
 package com.personal.sagapattern.core.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.personal.sagapattern.core.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.model.dto.TopUpResponse;
 import com.personal.sagapattern.core.service.WalletService;
@@ -20,7 +21,7 @@ public class WalletController {
     private final WalletService walletService;
 
     @PostMapping("top-up")
-    public ResponseEntity topUp(@Valid @RequestBody TopUpRequest topUpRequest) {
+    public ResponseEntity topUp(@Valid @RequestBody TopUpRequest topUpRequest) throws JsonProcessingException {
         TopUpResponse topUpResponse = walletService.topUp(topUpRequest);
 
         return ResponseEntity.ok(topUpResponse);

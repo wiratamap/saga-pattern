@@ -13,7 +13,7 @@ import javax.persistence.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TopUpAction extends AuditModel {
+public class EventTopUp extends AuditModel {
     @Column
     private String cif;
 
