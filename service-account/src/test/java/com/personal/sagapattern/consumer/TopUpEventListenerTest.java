@@ -1,6 +1,7 @@
 package com.personal.sagapattern.consumer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.core.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.service.AccountService;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,16 +15,14 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 class TopUpEventListenerTest {
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private TopUpEventListener topUpEventListener;
-
     @Mock
     private AccountService accountService;
 
-    private String eventTopUpTopic = "EVENT_TOP_UP_REQUEST";
-
     @BeforeEach
     void setUp() {
-        topUpEventListener = new TopUpEventListener(eventTopUpTopic, accountService);
+        topUpEventListener = new TopUpEventListener(accountService);
     }
 
     @Test
@@ -34,8 +33,9 @@ class TopUpEventListenerTest {
                 .wallet("GO-PAY")
                 .destinationOfFund("00000000")
                 .build();
+        String message = objectMapper.writeValueAsString(topUpRequest);
 
-        topUpEventListener.consume(topUpRequest);
+        topUpEventListener.consume(message);
 
         verify(accountService).topUp(topUpRequest);
     }
