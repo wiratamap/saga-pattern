@@ -10,8 +10,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EnableJpaAuditing
 public class ServiceAccountApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(ServiceAccountApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(ServiceAccountApplication.class, args);
+    }
 
 }
