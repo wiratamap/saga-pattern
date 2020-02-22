@@ -33,6 +33,7 @@ public class WalletService {
                 .cif(topUpRequest.getCif())
                 .amount(topUpRequest.getAmount())
                 .wallet(topUpRequest.getWallet())
+                .destinationOfFund(topUpRequest.getDestinationOfFund())
                 .status(Status.PENDING)
                 .build();
 
@@ -43,6 +44,7 @@ public class WalletService {
                 .cif(topUpResponse.getCif())
                 .amount(topUpResponse.getAmount())
                 .wallet(topUpResponse.getWallet())
+                .destinationOfFund(topUpResponse.getDestinationOfFund())
                 .status(topUpResponse.getStatus())
                 .build();
     }

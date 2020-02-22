@@ -43,6 +43,13 @@ class WalletServiceTest {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
+    private TopUpRequest topUpRequest = TopUpRequest.builder()
+            .cif("000000001")
+            .amount(10000)
+            .wallet("GO-PAY")
+            .destinationOfFund("00000000")
+            .build();
+
     private void mockSaveOnTopUpActionRepository() {
         when(eventTopUpRepository.save(any(EventTopUp.class))).then(new Answer<EventTopUp>() {
             @Override
@@ -79,11 +86,6 @@ class WalletServiceTest {
     @Test
     void topUp_shouldReturnTopUpResponseWithPendingStatus_whenTopUpIsInvoked() throws JsonProcessingException {
         mockSaveOnTopUpActionRepository();
-        TopUpRequest topUpRequest = TopUpRequest.builder()
-                .cif("000000001")
-                .amount(10000)
-                .wallet("GO-PAY")
-                .build();
         String topUpEvent = objectMapper.writeValueAsString(topUpRequest);
 
         TopUpResponse topUpResponse = walletService.topUp(topUpRequest);
@@ -96,11 +98,6 @@ class WalletServiceTest {
     @Test
     void topUp_shouldNotSaveTopUpEvent_whenFailedToOrchestrateTriggeredEvent() {
         doThrow(OrchestrationException.class).when(sagaOrchestrationService).orchestrate(anyString(), anyList());
-        TopUpRequest topUpRequest = TopUpRequest.builder()
-                .cif("000000001")
-                .amount(10000)
-                .wallet("GO-PAY")
-                .build();
 
         Executable topUpAction = () -> walletService.topUp(topUpRequest);
 

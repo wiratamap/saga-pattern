@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class TopUpResponse {
     private String cif;
     private String wallet;
+    private String destinationOfFund;
     private int amount;
     private Status status;
 }

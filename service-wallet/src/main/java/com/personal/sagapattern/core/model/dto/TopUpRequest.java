@@ -18,6 +18,10 @@ public class TopUpRequest {
     @NotNull(message = "wallet cannot be null")
     private String wallet;
 
+    @NotNull(message = "destination of fund cannot be null")
+    private String destinationOfFund;
+
     @NotNull(message = "amount cannot be null")
     private int amount;
+
 }

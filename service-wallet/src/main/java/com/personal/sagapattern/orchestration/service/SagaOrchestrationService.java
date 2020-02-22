@@ -1,6 +1,5 @@
 package com.personal.sagapattern.orchestration.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.orchestration.exception.OrchestrationException;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -17,8 +16,6 @@ public class SagaOrchestrationService {
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public void orchestrate(String event, List<String> eventTopics) {
         if (event == null) {
