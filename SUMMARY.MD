@@ -28,3 +28,4 @@ account through their balance.
 The application must ensure that the transaction will not deduct their balance once there are system failure.
 
 ![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png)
+
