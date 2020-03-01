@@ -21,14 +21,11 @@ public class WalletService {
     private final SagaOrchestrationService sagaOrchestrationService;
 
     private final EventTopUpRepository eventTopUpRepository;
-
+    private final ObjectMapper objectMapper = new ObjectMapper();
     @Value("${event.top-up.topics}")
     private List<String> eventTopics;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     public TopUpResponse topUp(TopUpRequest topUpRequest) throws JsonProcessingException {
-        String topUpEventRequest = objectMapper.writeValueAsString(topUpRequest);
         EventTopUp eventTopUp = EventTopUp.builder()
                 .cif(topUpRequest.getCif())
                 .amount(topUpRequest.getAmount())
@@ -37,10 +34,14 @@ public class WalletService {
                 .status(Status.PENDING)
                 .build();
 
-        sagaOrchestrationService.orchestrate(topUpEventRequest, eventTopics);
         EventTopUp topUpResponse = eventTopUpRepository.save(eventTopUp);
+        topUpRequest.setEventId(topUpResponse.getId());
+
+        String topUpEventRequest = objectMapper.writeValueAsString(topUpRequest);
+        sagaOrchestrationService.orchestrate(topUpEventRequest, eventTopics);
 
         return TopUpResponse.builder()
+                .eventId(topUpResponse.getId())
                 .cif(topUpResponse.getCif())
                 .amount(topUpResponse.getAmount())
                 .wallet(topUpResponse.getWallet())

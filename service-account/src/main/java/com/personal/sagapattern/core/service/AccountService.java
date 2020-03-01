@@ -46,6 +46,7 @@ public class AccountService {
 
     private String buildTopUpEventResponseMessage(TopUpRequest topUpRequest, String reason) throws JsonProcessingException {
         TopUpEventResponse failedTopUpEvent = TopUpEventResponse.builder()
+                .eventId(topUpRequest.getEventId())
                 .cif(topUpRequest.getCif())
                 .amount(topUpRequest.getAmount())
                 .wallet(topUpRequest.getWallet())
@@ -65,6 +66,7 @@ public class AccountService {
 
     private void orchestrateSuccessTopUpEvent(TopUpRequest topUpRequest) throws JsonProcessingException {
         TransferRequest transferRequest = TransferRequest.builder()
+                .eventId(topUpRequest.getEventId())
                 .cif(topUpRequest.getCif())
                 .amount(topUpRequest.getAmount())
                 .destinationOfFund(topUpRequest.getDestinationOfFund())

@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -51,6 +52,7 @@ class AccountServiceTest {
     private int topUpAmount = 10000;
     private String destinationOfFund = "00000000";
     private String wallet = "GO-PAY";
+    private UUID mockEventId = UUID.fromString("7b5f770a-68e9-4723-bcad-8cb8c12f362d");
 
     private List<String> transferEventTopics() {
         return Collections.singletonList("EVENT_TRANSFER_REQUEST");
@@ -92,12 +94,14 @@ class AccountServiceTest {
     void topUp_shouldDeductBalanceAndOrchestrateTransferEvent_whenAccountIsExist() throws JsonProcessingException {
         int expectedNewBalance = 90000;
         TopUpRequest topUpRequest = TopUpRequest.builder()
+                .eventId(mockEventId)
                 .cif(cif)
                 .amount(topUpAmount)
                 .wallet(wallet)
                 .destinationOfFund(destinationOfFund)
                 .build();
         TransferRequest transferRequest = TransferRequest.builder()
+                .eventId(mockEventId)
                 .cif(cif)
                 .amount(topUpAmount)
                 .destinationOfFund(destinationOfFund)
@@ -116,12 +120,14 @@ class AccountServiceTest {
     @Test
     void topUp_shouldNotDeductBalanceAndOrchestrateTransferEvent_whenAccountIsNotFound() throws JsonProcessingException {
         TopUpRequest topUpRequest = TopUpRequest.builder()
+                .eventId(mockEventId)
                 .cif(cif)
                 .amount(topUpAmount)
                 .wallet(wallet)
                 .destinationOfFund(destinationOfFund)
                 .build();
         TopUpEventResponse failedTopUp = TopUpEventResponse.builder()
+                .eventId(mockEventId)
                 .cif(topUpRequest.getCif())
                 .amount(topUpRequest.getAmount())
                 .wallet(topUpRequest.getWallet())
@@ -142,12 +148,14 @@ class AccountServiceTest {
     void topUp_shouldNotDeductBalanceAndOrchestrateTransferEvent_whenTopUpAmountExceedsAccountBalance() throws JsonProcessingException {
         int topUpAmount = 500000;
         TopUpRequest topUpRequest = TopUpRequest.builder()
+                .eventId(mockEventId)
                 .cif(cif)
                 .amount(topUpAmount)
                 .wallet(wallet)
                 .destinationOfFund(destinationOfFund)
                 .build();
         TopUpEventResponse failedTopUp = TopUpEventResponse.builder()
+                .eventId(mockEventId)
                 .cif(topUpRequest.getCif())
                 .amount(topUpRequest.getAmount())
                 .wallet(topUpRequest.getWallet())
@@ -168,12 +176,14 @@ class AccountServiceTest {
     void topUp_shouldDeductBalanceAndOrchestrateSuccessTopUpEvent_whenAccountIsExist() throws JsonProcessingException {
         int expectedNewBalance = 90000;
         TopUpRequest topUpRequest = TopUpRequest.builder()
+                .eventId(mockEventId)
                 .cif(cif)
                 .amount(topUpAmount)
                 .wallet(wallet)
                 .destinationOfFund(destinationOfFund)
                 .build();
         TopUpEventResponse successTopUp = TopUpEventResponse.builder()
+                .eventId(mockEventId)
                 .cif(topUpRequest.getCif())
                 .amount(topUpRequest.getAmount())
                 .wallet(topUpRequest.getWallet())

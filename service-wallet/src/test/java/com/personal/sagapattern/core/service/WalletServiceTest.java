@@ -31,19 +31,18 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class WalletServiceTest {
 
+    UUID mockEventId = UUID.fromString("7b5f770a-68e9-4723-bcad-8cb8c12f362d");
     private WalletService walletService;
-
     @Mock
     private SagaOrchestrationService sagaOrchestrationService;
-
     @Mock
     private EventTopUpRepository eventTopUpRepository;
-
     private List<String> eventTopics = eventTopics();
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
     private TopUpRequest topUpRequest = TopUpRequest.builder()
+            .eventId(mockEventId)
             .cif("000000001")
             .amount(10000)
             .wallet("GO-PAY")
@@ -55,7 +54,7 @@ class WalletServiceTest {
             @Override
             public EventTopUp answer(InvocationOnMock invocation) throws Throwable {
                 EventTopUp eventTopUp = invocation.getArgument(0);
-                eventTopUp.setId(UUID.randomUUID());
+                eventTopUp.setId(mockEventId);
 
                 return eventTopUp;
             }
@@ -97,6 +96,7 @@ class WalletServiceTest {
 
     @Test
     void topUp_shouldNotSaveTopUpEvent_whenFailedToOrchestrateTriggeredEvent() {
+        mockSaveOnTopUpActionRepository();
         doThrow(OrchestrationException.class).when(sagaOrchestrationService).orchestrate(anyString(), anyList());
 
         Executable topUpAction = () -> walletService.topUp(topUpRequest);
