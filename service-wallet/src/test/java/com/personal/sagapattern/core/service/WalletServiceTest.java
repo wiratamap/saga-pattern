@@ -3,6 +3,7 @@ package com.personal.sagapattern.core.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.core.enumeration.Status;
+import com.personal.sagapattern.core.exception.EventNotFoundException;
 import com.personal.sagapattern.core.model.EventTopUp;
 import com.personal.sagapattern.core.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.model.dto.TopUpResponse;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,6 +23,7 @@ import org.mockito.stubbing.Answer;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -103,5 +106,28 @@ class WalletServiceTest {
 
         verify(eventTopUpRepository, never()).save(any(EventTopUp.class));
         assertThrows(OrchestrationException.class, topUpAction);
+    }
+
+    @Test
+    void updateStatus_shouldSaveEventWithSuccessStatus_whenNewStatusIsSuccess() {
+        ArgumentCaptor<EventTopUp> eventTopUpArgumentCaptor = ArgumentCaptor.forClass(EventTopUp.class);
+        EventTopUp eventTopUp = new EventTopUp();
+        eventTopUp.setStatus(Status.SUCCESS);
+        when(eventTopUpRepository.findById(mockEventId)).thenReturn(Optional.of(eventTopUp));
+
+        walletService.updateStatus(topUpRequest, Status.SUCCESS);
+
+        verify(eventTopUpRepository).save(eventTopUpArgumentCaptor.capture());
+        assertEquals(Status.SUCCESS, eventTopUpArgumentCaptor.getValue().getStatus());
+    }
+
+    @Test
+    void updateStatus_shouldNotUpdateStatusAndThrowEventNotFound_whenEventIsNotFound() {
+        when(eventTopUpRepository.findById(mockEventId)).thenReturn(Optional.empty());
+
+        Executable updateStatusAction = () -> walletService.updateStatus(topUpRequest, Status.SUCCESS);
+
+        verify(eventTopUpRepository, never()).save(any(EventTopUp.class));
+        assertThrows(EventNotFoundException.class, updateStatusAction);
     }
 }

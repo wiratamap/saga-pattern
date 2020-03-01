@@ -3,6 +3,7 @@ package com.personal.sagapattern.core.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.core.enumeration.Status;
+import com.personal.sagapattern.core.exception.EventNotFoundException;
 import com.personal.sagapattern.core.model.EventTopUp;
 import com.personal.sagapattern.core.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.model.dto.TopUpResponse;
@@ -48,5 +49,13 @@ public class WalletService {
                 .destinationOfFund(topUpResponse.getDestinationOfFund())
                 .status(topUpResponse.getStatus())
                 .build();
+    }
+
+    public void updateStatus(TopUpRequest topUpRequest, Status status) {
+        EventTopUp eventTopUp = eventTopUpRepository.findById(topUpRequest.getEventId())
+                .orElseThrow(EventNotFoundException::new);
+        eventTopUp.setStatus(status);
+
+        eventTopUpRepository.save(eventTopUp);
     }
 }
