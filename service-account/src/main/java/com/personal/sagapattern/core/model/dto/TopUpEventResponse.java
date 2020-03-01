@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FailedTopUpEvent {
+public class TopUpEventResponse {
     private String cif;
     private String wallet;
     private String destinationOfFund;

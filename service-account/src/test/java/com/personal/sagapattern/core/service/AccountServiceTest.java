@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.core.exception.AccountNotFoundException;
 import com.personal.sagapattern.core.exception.ExceededBalanceException;
 import com.personal.sagapattern.core.model.Account;
-import com.personal.sagapattern.core.model.dto.FailedTopUpEvent;
+import com.personal.sagapattern.core.model.dto.TopUpEventResponse;
 import com.personal.sagapattern.core.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.model.dto.TransferRequest;
 import com.personal.sagapattern.core.repository.AccountRepository;
@@ -42,6 +42,8 @@ class AccountServiceTest {
 
     private List<String> failedTopUpEventTopics = failedTopUpEventTopics();
 
+    private List<String> successTopUpEventTopics = successTopUpEventTopics();
+
     private ObjectMapper objectMapper = new ObjectMapper();
 
     private String cif = "00000001";
@@ -58,13 +60,18 @@ class AccountServiceTest {
         return Collections.singletonList("EVENT_FAILED_TOP_UP_RESPONSE");
     }
 
+    private List<String> successTopUpEventTopics() {
+        return Collections.singletonList("EVENT_SUCCESS_TOP_UP_RESPONSE");
+    }
+
     @BeforeEach
     void setUp() {
         accountService = new AccountService(
                 accountRepository,
                 sagaOrchestrationService,
                 transferEventTopics,
-                failedTopUpEventTopics
+                failedTopUpEventTopics,
+                successTopUpEventTopics
         );
     }
 
@@ -114,7 +121,7 @@ class AccountServiceTest {
                 .wallet(wallet)
                 .destinationOfFund(destinationOfFund)
                 .build();
-        FailedTopUpEvent failedTopUp = FailedTopUpEvent.builder()
+        TopUpEventResponse failedTopUp = TopUpEventResponse.builder()
                 .cif(topUpRequest.getCif())
                 .amount(topUpRequest.getAmount())
                 .wallet(topUpRequest.getWallet())
@@ -140,7 +147,7 @@ class AccountServiceTest {
                 .wallet(wallet)
                 .destinationOfFund(destinationOfFund)
                 .build();
-        FailedTopUpEvent failedTopUp = FailedTopUpEvent.builder()
+        TopUpEventResponse failedTopUp = TopUpEventResponse.builder()
                 .cif(topUpRequest.getCif())
                 .amount(topUpRequest.getAmount())
                 .wallet(topUpRequest.getWallet())
@@ -155,6 +162,33 @@ class AccountServiceTest {
         verify(accountRepository, never()).save(any(Account.class));
         assertThrows(ExceededBalanceException.class, topUpAction);
         verify(sagaOrchestrationService).orchestrate(failedTopUpEvent, failedTopUpEventTopics);
+    }
+
+    @Test
+    void topUp_shouldDeductBalanceAndOrchestrateSuccessTopUpEvent_whenAccountIsExist() throws JsonProcessingException {
+        int expectedNewBalance = 90000;
+        TopUpRequest topUpRequest = TopUpRequest.builder()
+                .cif(cif)
+                .amount(topUpAmount)
+                .wallet(wallet)
+                .destinationOfFund(destinationOfFund)
+                .build();
+        TopUpEventResponse successTopUp = TopUpEventResponse.builder()
+                .cif(topUpRequest.getCif())
+                .amount(topUpRequest.getAmount())
+                .wallet(topUpRequest.getWallet())
+                .destinationOfFund(topUpRequest.getDestinationOfFund())
+                .reason("SUCCESS")
+                .build();
+        String successTopUpEvent = objectMapper.writeValueAsString(successTopUp);
+        ArgumentCaptor<Account> account = ArgumentCaptor.forClass(Account.class);
+        mockAccountIsExistWithFindByIdOnAccountRepository();
+
+        accountService.topUp(topUpRequest);
+
+        verify(accountRepository).save(account.capture());
+        assertEquals(expectedNewBalance, account.getValue().getBalance());
+        verify(sagaOrchestrationService).orchestrate(successTopUpEvent, successTopUpEventTopics);
     }
 
 }

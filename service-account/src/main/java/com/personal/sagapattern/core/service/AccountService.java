@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.core.exception.AccountNotFoundException;
 import com.personal.sagapattern.core.exception.ExceededBalanceException;
 import com.personal.sagapattern.core.model.Account;
-import com.personal.sagapattern.core.model.dto.FailedTopUpEvent;
+import com.personal.sagapattern.core.model.dto.TopUpEventResponse;
 import com.personal.sagapattern.core.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.model.dto.TransferRequest;
 import com.personal.sagapattern.core.repository.AccountRepository;
@@ -37,6 +37,48 @@ public class AccountService {
     @Value("${event.failed-top-up.topics}")
     private List<String> failedTopUpEventTopics;
 
+    @Value("${event.success-top-up.topics}")
+    private List<String> successTopUpEventTopics;
+
+    private boolean isAmountExceedsAccountBalance(TopUpRequest topUpRequest, Account account) {
+        return topUpRequest.getAmount() > account.getBalance();
+    }
+
+    private String buildTopUpEventResponseMessage(TopUpRequest topUpRequest, String reason) throws JsonProcessingException {
+        TopUpEventResponse failedTopUpEvent = TopUpEventResponse.builder()
+                .cif(topUpRequest.getCif())
+                .amount(topUpRequest.getAmount())
+                .wallet(topUpRequest.getWallet())
+                .destinationOfFund(topUpRequest.getDestinationOfFund())
+                .reason(reason)
+                .build();
+        return objectMapper.writeValueAsString(failedTopUpEvent);
+    }
+
+    private void orchestrateFailedTopUpEvent(TopUpRequest topUpRequest, String reason) throws JsonProcessingException {
+        logger.error("{}, CIF: {}", reason, topUpRequest.getCif());
+
+        String failedTopUpEventResponse = buildTopUpEventResponseMessage(topUpRequest, reason);
+
+        sagaOrchestrationService.orchestrate(failedTopUpEventResponse, failedTopUpEventTopics);
+    }
+
+    private void orchestrateSuccessTopUpEvent(TopUpRequest topUpRequest) throws JsonProcessingException {
+        TransferRequest transferRequest = TransferRequest.builder()
+                .cif(topUpRequest.getCif())
+                .amount(topUpRequest.getAmount())
+                .destinationOfFund(topUpRequest.getDestinationOfFund())
+                .build();
+        String transferRequestEvent = objectMapper.writeValueAsString(transferRequest);
+
+        logger.info("{}, CIF: {}", "SUCCESS", topUpRequest.getCif());
+
+        String successTopUpEventResponse = buildTopUpEventResponseMessage(topUpRequest, "SUCCESS");
+
+        sagaOrchestrationService.orchestrate(transferRequestEvent, transferEventTopics);
+        sagaOrchestrationService.orchestrate(successTopUpEventResponse, successTopUpEventTopics);
+    }
+
     public void topUp(TopUpRequest topUpRequest) throws JsonProcessingException {
         Account account = accountRepository.findByCif(topUpRequest.getCif());
 
@@ -46,7 +88,7 @@ public class AccountService {
             throw new AccountNotFoundException(reason);
         }
 
-        if (topUpRequest.getAmount() > account.getBalance()) {
+        if (isAmountExceedsAccountBalance(topUpRequest, account)) {
             String reason = "Top-up amount exceeds account balance";
             orchestrateFailedTopUpEvent(topUpRequest, reason);
             throw new ExceededBalanceException(reason);
@@ -56,28 +98,6 @@ public class AccountService {
         account.setBalance(newBalance);
         accountRepository.save(account);
 
-        TransferRequest transferRequest = TransferRequest.builder()
-                .cif(account.getCif())
-                .amount(topUpRequest.getAmount())
-                .destinationOfFund(topUpRequest.getDestinationOfFund())
-                .build();
-        String transferRequestEvent = objectMapper.writeValueAsString(transferRequest);
-
-        sagaOrchestrationService.orchestrate(transferRequestEvent, transferEventTopics);
-    }
-
-    private void orchestrateFailedTopUpEvent(TopUpRequest topUpRequest, String reason) throws JsonProcessingException {
-        logger.error("{}, CIF: {}", reason, topUpRequest.getCif());
-
-        FailedTopUpEvent failedTopUpEvent = FailedTopUpEvent.builder()
-                .cif(topUpRequest.getCif())
-                .amount(topUpRequest.getAmount())
-                .wallet(topUpRequest.getWallet())
-                .destinationOfFund(topUpRequest.getDestinationOfFund())
-                .reason(reason)
-                .build();
-        String failedTopUpEventResponse = objectMapper.writeValueAsString(failedTopUpEvent);
-
-        sagaOrchestrationService.orchestrate(failedTopUpEventResponse, failedTopUpEventTopics);
+        orchestrateSuccessTopUpEvent(topUpRequest);
     }
 }
