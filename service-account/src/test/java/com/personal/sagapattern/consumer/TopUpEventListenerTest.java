@@ -16,7 +16,9 @@ import static org.mockito.Mockito.verify;
 class TopUpEventListenerTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
     private TopUpEventListener topUpEventListener;
+
     @Mock
     private AccountService accountService;
 

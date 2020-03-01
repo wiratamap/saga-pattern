@@ -27,6 +27,9 @@ public class EventTopUp extends AuditModel {
     private String destinationOfFund;
 
     @Column
+    private String reason;
+
+    @Column
     @Enumerated(value = EnumType.STRING)
     private Status status;
 }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.core.enumeration.Status;
 import com.personal.sagapattern.core.exception.EventNotFoundException;
 import com.personal.sagapattern.core.model.EventTopUp;
+import com.personal.sagapattern.core.model.dto.TopUpEventResult;
 import com.personal.sagapattern.core.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.model.dto.TopUpResponse;
 import com.personal.sagapattern.core.repository.EventTopUpRepository;
@@ -51,10 +52,11 @@ public class WalletService {
                 .build();
     }
 
-    public void updateStatus(TopUpRequest topUpRequest, Status status) {
-        EventTopUp eventTopUp = eventTopUpRepository.findById(topUpRequest.getEventId())
+    public void updateStatus(TopUpEventResult topUpEventResult, Status status) {
+        EventTopUp eventTopUp = eventTopUpRepository.findById(topUpEventResult.getEventId())
                 .orElseThrow(EventNotFoundException::new);
         eventTopUp.setStatus(status);
+        eventTopUp.setReason(topUpEventResult.getReason());
 
         eventTopUpRepository.save(eventTopUp);
     }

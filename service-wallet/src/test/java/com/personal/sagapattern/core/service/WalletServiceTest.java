@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.core.enumeration.Status;
 import com.personal.sagapattern.core.exception.EventNotFoundException;
 import com.personal.sagapattern.core.model.EventTopUp;
+import com.personal.sagapattern.core.model.dto.TopUpEventResult;
 import com.personal.sagapattern.core.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.model.dto.TopUpResponse;
 import com.personal.sagapattern.core.repository.EventTopUpRepository;
@@ -50,6 +51,15 @@ class WalletServiceTest {
             .amount(10000)
             .wallet("GO-PAY")
             .destinationOfFund("00000000")
+            .build();
+
+    private TopUpEventResult topUpEventResult = TopUpEventResult.builder()
+            .eventId(mockEventId)
+            .cif("000000001")
+            .amount(10000)
+            .wallet("GO-PAY")
+            .destinationOfFund("00000000")
+            .reason("REASON")
             .build();
 
     private void mockSaveOnTopUpActionRepository() {
@@ -115,7 +125,7 @@ class WalletServiceTest {
         eventTopUp.setStatus(Status.SUCCESS);
         when(eventTopUpRepository.findById(mockEventId)).thenReturn(Optional.of(eventTopUp));
 
-        walletService.updateStatus(topUpRequest, Status.SUCCESS);
+        walletService.updateStatus(topUpEventResult, Status.SUCCESS);
 
         verify(eventTopUpRepository).save(eventTopUpArgumentCaptor.capture());
         assertEquals(Status.SUCCESS, eventTopUpArgumentCaptor.getValue().getStatus());
@@ -125,7 +135,7 @@ class WalletServiceTest {
     void updateStatus_shouldNotUpdateStatusAndThrowEventNotFound_whenEventIsNotFound() {
         when(eventTopUpRepository.findById(mockEventId)).thenReturn(Optional.empty());
 
-        Executable updateStatusAction = () -> walletService.updateStatus(topUpRequest, Status.SUCCESS);
+        Executable updateStatusAction = () -> walletService.updateStatus(topUpEventResult, Status.SUCCESS);
 
         verify(eventTopUpRepository, never()).save(any(EventTopUp.class));
         assertThrows(EventNotFoundException.class, updateStatusAction);
