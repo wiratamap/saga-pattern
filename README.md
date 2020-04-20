@@ -26,3 +26,7 @@ Let's imagine we are building a digital banking application where customer can t
 account through their balance.
 
 The application must ensure that the transaction will not deduct their balance once there are system failure.
+
+### Service Architecture
+![alt text](https://raw.githubusercontent.com/wiratamap/saga-pattern/master/SAGA.png "Saga Service Architecture")
+
