@@ -1,3 +1,5 @@
+![Java CI](https://github.com/wiratamap/saga-pattern/workflows/Java%20CI/badge.svg)
+
 ## Event Driven Architecture
 ### Important Notes
 This pattern already replaced by SAGA Pattern.
