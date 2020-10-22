@@ -1,20 +1,20 @@
 package com.personal.sagapattern.consumer;
 
+import static org.mockito.Mockito.verify;
+
+import java.util.UUID;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.core.enumeration.Status;
 import com.personal.sagapattern.core.model.dto.TopUpEventResult;
-import com.personal.sagapattern.core.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.service.WalletService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.UUID;
-
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class EventTopUpFailedListenerTest {
