@@ -31,7 +31,7 @@ public class EventTopUpFailedListener {
 
     private final SagaOrchestrationService sagaOrchestrationService;
 
-    @Value("${event.top-up.dead-letter.topics}")
+    @Value("${dead-letter.topics}")
     private final List<String> deadLetterTopics;
 
     @Value("${event.top-up.topics}")

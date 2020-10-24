@@ -28,7 +28,7 @@ class DeadLetterListener {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @KafkaListener(topics = "${event.top-up.dead-letter.topic}")
+    @KafkaListener(topics = "${dead-letter.topics}")
     void consume(@Payload String message) throws JsonProcessingException {
         DeadLetterDto deadLetterDto = objectMapper.readValue(message, DeadLetterDto.class);
         List<OriginTopic> originTopics = deadLetterDto.getOriginTopics().stream()
