@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-class DeadLetterListener {
+public class DeadLetterListener {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 

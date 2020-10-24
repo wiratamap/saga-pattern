@@ -42,17 +42,31 @@ class DeadLetterServiceTest {
         });
     }
 
+    private DeadLetter deadLetter() {
+        OriginTopic originalTopic = OriginTopic.builder().name("ORIGINAL_TOPIC").build();
+        List<OriginTopic> originTopics = Collections.singletonList(originalTopic);
+        return DeadLetter.builder().originalMessage("something").reason("fail reason").originTopics(originTopics)
+                .build();
+    }
+
     @Test
     void create_shouldReturnCreatedDeadLetter_whenCreateWithDefinedDeadLetter() {
         this.mockSaveOnTopUpActionRepository();
-        OriginTopic originalTopic = OriginTopic.builder().name("ORIGINAL_TOPIC").build();
-        List<OriginTopic> originTopics = Collections.singletonList(originalTopic);
-        DeadLetter deadLetter = DeadLetter.builder().originalMessage("something").reason("fail reason")
-                .originTopics(originTopics).build();
+        DeadLetter deadLetter = this.deadLetter();
 
         DeadLetter createdDeadLetter = deadLetterService.create(deadLetter);
 
         Mockito.verify(this.deadLetterRepository).save(deadLetter);
         Assertions.assertEquals(mockDeadLetterId, createdDeadLetter.getId());
+    }
+
+    @Test
+    void fetchAll_shouldReturnAvailableDeadLetter_whenThereAreAvailableDeadLetter() {
+        List<DeadLetter> deadLetters = Collections.singletonList(this.deadLetter());
+        Mockito.when(this.deadLetterRepository.findAll()).thenReturn(deadLetters);
+
+        List<DeadLetter> availableDeadLetters = deadLetterService.fetchAll();
+
+        Assertions.assertEquals(deadLetters, availableDeadLetters);
     }
 }
