@@ -126,13 +126,14 @@ class AccountServiceTest {
                 .wallet(wallet)
                 .destinationOfFund(destinationOfFund)
                 .build();
+        String reason = "Source account with CIF " + cif + " not found";
         TopUpEventResponse failedTopUp = TopUpEventResponse.builder()
                 .eventId(mockEventId)
                 .cif(topUpRequest.getCif())
                 .amount(topUpRequest.getAmount())
                 .wallet(topUpRequest.getWallet())
                 .destinationOfFund(topUpRequest.getDestinationOfFund())
-                .reason("Account not found")
+                .reason(reason)
                 .build();
         String failedTopUpEvent = objectMapper.writeValueAsString(failedTopUp);
         when(accountRepository.findByCif(cif)).thenReturn(null);
