@@ -16,6 +16,6 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class OriginalTopic extends AuditModel {
+public class OriginTopic extends AuditModel {
     private String name;
 }

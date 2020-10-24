@@ -7,7 +7,7 @@ import java.util.UUID;
 import com.personal.servicedlqplatform.core.deadletter.DeadLetter;
 import com.personal.servicedlqplatform.core.deadletter.DeadLetterRepository;
 import com.personal.servicedlqplatform.core.deadletter.DeadLetterService;
-import com.personal.servicedlqplatform.core.deadletter.OriginalTopic;
+import com.personal.servicedlqplatform.core.deadletter.OriginTopic;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -45,10 +45,10 @@ class DeadLetterServiceTest {
     @Test
     void create_shouldReturnCreatedDeadLetter_whenCreateWithDefinedDeadLetter() {
         this.mockSaveOnTopUpActionRepository();
-        OriginalTopic originalTopic = OriginalTopic.builder().name("ORIGINAL_TOPIC").build();
-        List<OriginalTopic> originalTopics = Collections.singletonList(originalTopic);
-        DeadLetter deadLetter = DeadLetter.builder().message("something").reason("fail reason")
-                .originalTopics(originalTopics).build();
+        OriginTopic originalTopic = OriginTopic.builder().name("ORIGINAL_TOPIC").build();
+        List<OriginTopic> originTopics = Collections.singletonList(originalTopic);
+        DeadLetter deadLetter = DeadLetter.builder().originalMessage("something").reason("fail reason")
+                .originTopics(originTopics).build();
 
         DeadLetter createdDeadLetter = deadLetterService.create(deadLetter);
 

@@ -2,6 +2,7 @@ package com.personal.servicedlqplatform.core.deadletter;
 
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
@@ -23,12 +24,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DeadLetter extends AuditModel {
     @Column
-    private String message;
+    private String originalMessage;
 
     @Column
     private String reason;
 
-    @OneToMany(orphanRemoval = true)
+    @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL)
     @JoinColumn(name = "dead_letter_id")
-    private List<OriginalTopic> originalTopics;
+    private List<OriginTopic> originTopics;
 }
