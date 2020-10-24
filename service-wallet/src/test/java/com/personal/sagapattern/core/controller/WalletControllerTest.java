@@ -1,7 +1,6 @@
 package com.personal.sagapattern.core.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.personal.sagapattern.core.model.EventTopUp;
 import com.personal.sagapattern.core.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.model.dto.TopUpResponse;
 import com.personal.sagapattern.core.repository.EventTopUpRepository;

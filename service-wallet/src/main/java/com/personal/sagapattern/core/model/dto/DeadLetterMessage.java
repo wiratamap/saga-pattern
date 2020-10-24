@@ -15,5 +15,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class DeadLetterMessage<T extends Disposable> {
     private List<String> originTopics;
-    private T message;
+    private T originalMessage;
+    private String reason;
 }

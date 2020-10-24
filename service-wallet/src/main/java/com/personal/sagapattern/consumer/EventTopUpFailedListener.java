@@ -8,6 +8,7 @@ import com.personal.sagapattern.common.model.Disposable;
 import com.personal.sagapattern.core.enumeration.Status;
 import com.personal.sagapattern.core.model.dto.DeadLetterMessage;
 import com.personal.sagapattern.core.model.dto.TopUpEventResult;
+import com.personal.sagapattern.core.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.service.WalletService;
 import com.personal.sagapattern.orchestration.service.SagaOrchestrationService;
 
@@ -46,10 +47,11 @@ public class EventTopUpFailedListener {
 
         walletService.updateStatus(topUpEventResult, Status.FAIL);
 
+        TopUpRequest originalMessage = TopUpRequest.convertFrom(topUpEventResult);
         DeadLetterMessage<Disposable> deadLetter = DeadLetterMessage.builder().originTopics(originTopics)
-                .message(topUpEventResult).build();
+                .originalMessage(originalMessage).reason(topUpEventResult.getReason()).build();
         String deadLetterMessage = objectMapper.writeValueAsString(deadLetter);
-        
+
         sagaOrchestrationService.orchestrate(deadLetterMessage, deadLetterTopics);
 
         logger.info("FINISH ::: Processing event response");

@@ -1,18 +1,23 @@
 package com.personal.sagapattern.core.model.dto;
 
+import java.util.UUID;
+
+import javax.validation.constraints.NotNull;
+
+import com.personal.sagapattern.common.model.Disposable;
+
+import org.modelmapper.ModelMapper;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotNull;
-import java.util.UUID;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TopUpRequest {
+public class TopUpRequest implements Disposable {
     @NotNull(message = "CIF cannot be null")
     private String cif;
 
@@ -26,4 +31,9 @@ public class TopUpRequest {
     private int amount;
 
     private UUID eventId;
+
+    public static TopUpRequest convertFrom(Object object) {
+        ModelMapper modelMapper = new ModelMapper();
+        return modelMapper.map(object, TopUpRequest.class);
+    }
 }
