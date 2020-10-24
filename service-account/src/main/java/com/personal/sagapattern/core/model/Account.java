@@ -1,15 +1,18 @@
 package com.personal.sagapattern.core.model;
 
-import com.personal.sagapattern.common.model.AuditModel;
-import lombok.*;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.Table;
+
+import com.personal.sagapattern.common.model.AuditModel;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(schema = "account")
 @Data
 @Builder
 @NoArgsConstructor
