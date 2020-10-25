@@ -1,13 +1,8 @@
-package com.personal.servicedlqplatform.deadletter;
+package com.personal.servicedlqplatform.core.deadletter;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-
-import com.personal.servicedlqplatform.core.deadletter.DeadLetter;
-import com.personal.servicedlqplatform.core.deadletter.DeadLetterRepository;
-import com.personal.servicedlqplatform.core.deadletter.DeadLetterService;
-import com.personal.servicedlqplatform.core.deadletter.OriginTopic;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

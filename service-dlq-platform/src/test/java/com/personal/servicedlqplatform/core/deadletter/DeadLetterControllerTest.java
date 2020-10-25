@@ -1,12 +1,9 @@
-package com.personal.servicedlqplatform.deadletter;
+package com.personal.servicedlqplatform.core.deadletter;
 
 import java.util.Collections;
 import java.util.List;
 
 import com.personal.servicedlqplatform.consumer.DeadLetterListener;
-import com.personal.servicedlqplatform.core.deadletter.DeadLetter;
-import com.personal.servicedlqplatform.core.deadletter.DeadLetterRepository;
-import com.personal.servicedlqplatform.core.deadletter.OriginTopic;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
