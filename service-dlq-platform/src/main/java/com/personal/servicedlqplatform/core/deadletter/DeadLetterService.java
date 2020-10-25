@@ -34,7 +34,8 @@ public class DeadLetterService {
 		String message = availableDeadLetter.getOriginalMessage();
 		List<String> originTopics = availableDeadLetter.getOriginTopics().stream().map(OriginTopic::getName)
 				.collect(Collectors.toList());
-
-		this.sagaOrchestrationService.orchestrate(message, originTopics);
+		
+		this.deadLetterRepository.deleteById(deadLetterId);
+		deleteRequest.getDeleteAction().commit(sagaOrchestrationService, message, originTopics);
 	}
 }

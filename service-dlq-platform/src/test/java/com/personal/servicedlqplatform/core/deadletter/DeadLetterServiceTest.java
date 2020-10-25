@@ -1,8 +1,5 @@
 package com.personal.servicedlqplatform.core.deadletter;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atMostOnce;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +12,7 @@ import com.personal.servicedlqplatform.core.deadletter.dto.DeadLetterDeleteReque
 import com.personal.servicedlqplatform.core.deadletter.exception.DeadLetterNotFoundException;
 import com.personal.servicedlqplatform.orchestration.service.SagaOrchestrationService;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,6 +50,11 @@ class DeadLetterServiceTest {
                 return eventTopUp;
             }
         });
+    }
+
+    @AfterEach
+    public void tearDown() {
+        Mockito.clearInvocations(this.deadLetterRepository, this.sagaOrchestrationService);
     }
 
     private DeadLetter deadLetter() {
@@ -96,7 +99,9 @@ class DeadLetterServiceTest {
 
         deadLetterService.delete(availableDeadLetter.getId(), deleteRequest);
 
-        Mockito.verify(sagaOrchestrationService, Mockito.atMostOnce()).orchestrate(expectedMessage, expectedTopics);
+        Mockito.verify(this.sagaOrchestrationService, Mockito.atMostOnce()).orchestrate(expectedMessage,
+                expectedTopics);
+        Mockito.verify(this.deadLetterRepository, Mockito.times(1)).deleteById(availableDeadLetter.getId());
     }
 
     @Test
@@ -108,5 +113,23 @@ class DeadLetterServiceTest {
         Executable deleteAction = () -> deadLetterService.delete(mockDeadLetterId, deleteRequest);
 
         Assertions.assertThrows(DeadLetterNotFoundException.class, deleteAction);
+    }
+
+    @Test
+    void delete_shouldOnlyDeleteAndNotOrchestrateBackTheMessageToOriginTopic_whenDeadLetterActionIsDelete()
+            throws JsonProcessingException {
+        DeadLetter availableDeadLetter = this.deadLetter();
+        availableDeadLetter.setId(this.mockDeadLetterId);
+        Mockito.when(this.deadLetterRepository.findById(availableDeadLetter.getId()))
+                .thenReturn(Optional.of(availableDeadLetter));
+        DeadLetterDeleteRequestDto deleteRequest = DeadLetterDeleteRequestDto.builder()
+                .deleteAction(DeadLetterActionRequestDto.SEND_TO_ORIGIN_TOPIC).build();
+        String expectedMessage = this.objectMapper.writeValueAsString(availableDeadLetter);
+        List<String> expectedTopics = Collections.singletonList(availableDeadLetter.getOriginTopics().get(0).getName());
+
+        deadLetterService.delete(availableDeadLetter.getId(), deleteRequest);
+
+        Mockito.verify(this.sagaOrchestrationService, Mockito.never()).orchestrate(expectedMessage, expectedTopics);
+        Mockito.verify(this.deadLetterRepository, Mockito.times(1)).deleteById(availableDeadLetter.getId());
     }
 }
