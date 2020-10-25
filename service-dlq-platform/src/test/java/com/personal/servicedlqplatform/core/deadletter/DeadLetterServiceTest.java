@@ -1,5 +1,6 @@
 package com.personal.servicedlqplatform.core.deadletter;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atMostOnce;
 
 import java.util.Collections;
@@ -11,11 +12,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.servicedlqplatform.core.deadletter.dto.DeadLetterActionRequestDto;
 import com.personal.servicedlqplatform.core.deadletter.dto.DeadLetterDeleteRequestDto;
+import com.personal.servicedlqplatform.core.deadletter.exception.DeadLetterNotFoundException;
 import com.personal.servicedlqplatform.orchestration.service.SagaOrchestrationService;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -94,5 +97,16 @@ class DeadLetterServiceTest {
         deadLetterService.delete(availableDeadLetter.getId(), deleteRequest);
 
         Mockito.verify(sagaOrchestrationService, Mockito.atMostOnce()).orchestrate(expectedMessage, expectedTopics);
+    }
+
+    @Test
+    void delete_shouldThrowDeadLetterNotFoundException_whenDeadLetterIsNotExist() throws JsonProcessingException {
+        Mockito.when(this.deadLetterRepository.findById(Mockito.any(UUID.class))).thenReturn(Optional.empty());
+        DeadLetterDeleteRequestDto deleteRequest = DeadLetterDeleteRequestDto.builder()
+                .deleteAction(DeadLetterActionRequestDto.SEND_TO_ORIGIN_TOPIC).build();
+
+        Executable deleteAction = () -> deadLetterService.delete(mockDeadLetterId, deleteRequest);
+
+        Assertions.assertThrows(DeadLetterNotFoundException.class, deleteAction);
     }
 }

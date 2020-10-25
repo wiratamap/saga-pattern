@@ -5,6 +5,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.personal.servicedlqplatform.core.deadletter.dto.DeadLetterDeleteRequestDto;
+import com.personal.servicedlqplatform.core.deadletter.exception.DeadLetterNotFoundException;
 import com.personal.servicedlqplatform.orchestration.service.SagaOrchestrationService;
 
 import org.springframework.stereotype.Service;
@@ -28,11 +29,12 @@ public class DeadLetterService {
 	}
 
 	public void delete(UUID deadLetterId, DeadLetterDeleteRequestDto deleteRequest) {
-		DeadLetter availableDeadLetter = this.deadLetterRepository.findById(deadLetterId).orElseThrow(null);
+		DeadLetter availableDeadLetter = this.deadLetterRepository.findById(deadLetterId)
+				.orElseThrow(DeadLetterNotFoundException::new);
 		String message = availableDeadLetter.getOriginalMessage();
 		List<String> originTopics = availableDeadLetter.getOriginTopics().stream().map(OriginTopic::getName)
 				.collect(Collectors.toList());
-		
+
 		this.sagaOrchestrationService.orchestrate(message, originTopics);
 	}
 }
