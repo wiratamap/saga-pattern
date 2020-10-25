@@ -1,8 +1,17 @@
 package com.personal.servicedlqplatform.core.deadletter;
 
+import static org.mockito.Mockito.atMostOnce;
+
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.personal.servicedlqplatform.core.deadletter.dto.DeadLetterActionRequestDto;
+import com.personal.servicedlqplatform.core.deadletter.dto.DeadLetterDeleteRequestDto;
+import com.personal.servicedlqplatform.orchestration.service.SagaOrchestrationService;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -20,10 +29,15 @@ class DeadLetterServiceTest {
     @Mock
     private DeadLetterRepository deadLetterRepository;
 
+    @Mock
+    private SagaOrchestrationService sagaOrchestrationService;
+
     @InjectMocks
     private DeadLetterService deadLetterService;
 
     private UUID mockDeadLetterId = UUID.fromString("7b5f770a-68e9-4723-bcad-8cb8c12f362d");
+
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     private void mockSaveOnTopUpActionRepository() {
         Mockito.when(deadLetterRepository.save(Mockito.any(DeadLetter.class))).then(new Answer<DeadLetter>() {
@@ -63,5 +77,22 @@ class DeadLetterServiceTest {
         List<DeadLetter> availableDeadLetters = deadLetterService.fetchAll();
 
         Assertions.assertEquals(deadLetters, availableDeadLetters);
+    }
+
+    @Test
+    void delete_shouldOrchestrateBackDeadLetterToOriginTopic_whenDeadLetterActionIsSendToOriginTopic()
+            throws JsonProcessingException {
+        DeadLetter availableDeadLetter = this.deadLetter();
+        availableDeadLetter.setId(this.mockDeadLetterId);
+        Mockito.when(this.deadLetterRepository.findById(availableDeadLetter.getId()))
+                .thenReturn(Optional.of(availableDeadLetter));
+        DeadLetterDeleteRequestDto deleteRequest = DeadLetterDeleteRequestDto.builder()
+                .deleteAction(DeadLetterActionRequestDto.SEND_TO_ORIGIN_TOPIC).build();
+        String expectedMessage = this.objectMapper.writeValueAsString(availableDeadLetter);
+        List<String> expectedTopics = Collections.singletonList(availableDeadLetter.getOriginTopics().get(0).getName());
+
+        deadLetterService.delete(availableDeadLetter.getId(), deleteRequest);
+
+        Mockito.verify(sagaOrchestrationService, Mockito.atMostOnce()).orchestrate(expectedMessage, expectedTopics);
     }
 }
