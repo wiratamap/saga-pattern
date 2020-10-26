@@ -44,15 +44,11 @@ public class AccountService {
         return topUpRequest.getAmount() > account.getBalance();
     }
 
-    private String buildTopUpEventResponseMessage(TopUpRequest topUpRequest, String reason) throws JsonProcessingException {
-        TopUpEventResponse failedTopUpEvent = TopUpEventResponse.builder()
-                .eventId(topUpRequest.getEventId())
-                .cif(topUpRequest.getCif())
-                .amount(topUpRequest.getAmount())
-                .wallet(topUpRequest.getWallet())
-                .destinationOfFund(topUpRequest.getDestinationOfFund())
-                .reason(reason)
-                .build();
+    private String buildTopUpEventResponseMessage(TopUpRequest topUpRequest, String reason)
+            throws JsonProcessingException {
+        TopUpEventResponse failedTopUpEvent = TopUpEventResponse.builder().eventId(topUpRequest.getEventId())
+                .cif(topUpRequest.getCif()).amount(topUpRequest.getAmount()).wallet(topUpRequest.getWallet())
+                .destinationOfFund(topUpRequest.getDestinationOfFund()).reason(reason).build();
         return objectMapper.writeValueAsString(failedTopUpEvent);
     }
 
@@ -65,12 +61,9 @@ public class AccountService {
     }
 
     private void orchestrateSuccessTopUpEvent(TopUpRequest topUpRequest) throws JsonProcessingException {
-        TransferRequest transferRequest = TransferRequest.builder()
-                .eventId(topUpRequest.getEventId())
-                .cif(topUpRequest.getCif())
-                .amount(topUpRequest.getAmount())
-                .destinationOfFund(topUpRequest.getDestinationOfFund())
-                .build();
+        TransferRequest transferRequest = TransferRequest.builder().eventId(topUpRequest.getEventId())
+                .cif(topUpRequest.getCif()).amount(topUpRequest.getAmount())
+                .destinationOfFund(topUpRequest.getDestinationOfFund()).build();
         String transferRequestEvent = objectMapper.writeValueAsString(transferRequest);
 
         logger.info("{}, CIF: {}", "SUCCESS", topUpRequest.getCif());
@@ -85,7 +78,7 @@ public class AccountService {
         Account account = accountRepository.findByCif(topUpRequest.getCif());
 
         if (Objects.isNull(account)) {
-            String reason = "Account not found";
+            String reason = "Source account with CIF " + topUpRequest.getCif() + " not found";
             orchestrateFailedTopUpEvent(topUpRequest, reason);
             throw new AccountNotFoundException(reason);
         }

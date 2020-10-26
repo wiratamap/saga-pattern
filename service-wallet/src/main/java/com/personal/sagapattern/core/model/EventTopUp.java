@@ -1,14 +1,21 @@
 package com.personal.sagapattern.core.model;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+
 import com.personal.sagapattern.common.model.AuditModel;
 import com.personal.sagapattern.core.enumeration.Status;
-import lombok.*;
 
-import javax.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(schema = "wallet")
 @Data
 @Builder
 @NoArgsConstructor

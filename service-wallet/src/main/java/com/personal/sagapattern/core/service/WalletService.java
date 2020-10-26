@@ -36,19 +36,19 @@ public class WalletService {
                 .status(Status.PENDING)
                 .build();
 
-        EventTopUp topUpResponse = eventTopUpRepository.save(eventTopUp);
-        topUpRequest.setEventId(topUpResponse.getId());
+        EventTopUp createdEventTopUp = eventTopUpRepository.save(eventTopUp);
+        topUpRequest.setEventId(createdEventTopUp.getId());
 
         String topUpEventRequest = objectMapper.writeValueAsString(topUpRequest);
         sagaOrchestrationService.orchestrate(topUpEventRequest, eventTopics);
 
         return TopUpResponse.builder()
-                .eventId(topUpResponse.getId())
-                .cif(topUpResponse.getCif())
-                .amount(topUpResponse.getAmount())
-                .wallet(topUpResponse.getWallet())
-                .destinationOfFund(topUpResponse.getDestinationOfFund())
-                .status(topUpResponse.getStatus())
+                .eventId(createdEventTopUp.getId())
+                .cif(createdEventTopUp.getCif())
+                .amount(createdEventTopUp.getAmount())
+                .wallet(createdEventTopUp.getWallet())
+                .destinationOfFund(createdEventTopUp.getDestinationOfFund())
+                .status(createdEventTopUp.getStatus())
                 .build();
     }
 

@@ -17,3 +17,5 @@ jobs:
       run: mvn -B test --file service-account/pom.xml
     - name: Wallet Service Test
       run: mvn -B test --file service-wallet/pom.xml
+    - name: Dead Letter Queue Platform Service Test
+      run: mvn -B test --file service-dlq-platform/pom.xml
