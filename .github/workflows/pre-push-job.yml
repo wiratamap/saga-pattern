@@ -15,12 +15,6 @@ jobs:
         java-version: 1.8
     - name: Library Kafka Producer Test
       run: mvn -B test --file library-kafka-producer/pom.xml
-    - name: Build Kafka Producer Library
-      run: mvn -B package --file library-kafka-producer/pom.xml
-    - name: Build Kafka Consumer Library
-      run: mvn -B package --file library-kafka-consumer/pom.xml
-    - name: Build Common Model Library
-      run: mvn -B package --file library-common-model/pom.xml
     - name: Account Service Test
       run: mvn -B test --file service-account/pom.xml
     - name: Wallet Service Test
