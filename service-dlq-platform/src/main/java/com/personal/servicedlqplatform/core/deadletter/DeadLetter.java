@@ -8,7 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 
-import com.personal.servicedlqplatform.common.model.AuditModel;
+import com.personal.librarycommonmodel.AuditModel;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -2,7 +2,7 @@ package com.personal.servicedlqplatform.core.deadletter;
 
 import javax.persistence.Entity;
 
-import com.personal.servicedlqplatform.common.model.AuditModel;
+import com.personal.librarycommonmodel.AuditModel;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
