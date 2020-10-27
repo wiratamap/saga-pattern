@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 
-import com.personal.sagapattern.common.model.Disposable;
+import com.personal.sagapattern.contract.Disposable;
 
 import org.modelmapper.ModelMapper;
 

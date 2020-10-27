@@ -2,7 +2,7 @@ package com.personal.sagapattern.core.model.dto;
 
 import java.util.UUID;
 
-import com.personal.sagapattern.common.model.Disposable;
+import com.personal.sagapattern.contract.Disposable;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

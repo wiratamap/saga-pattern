@@ -1,7 +1,25 @@
 package com.personal.sagapattern.core.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.personal.librarykafkaproducer.orchestration.exception.OrchestrationException;
+import com.personal.librarykafkaproducer.orchestration.service.SagaOrchestrationService;
 import com.personal.sagapattern.core.enumeration.Status;
 import com.personal.sagapattern.core.exception.EventNotFoundException;
 import com.personal.sagapattern.core.model.EventTopUp;
@@ -9,8 +27,7 @@ import com.personal.sagapattern.core.model.dto.TopUpEventResult;
 import com.personal.sagapattern.core.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.model.dto.TopUpResponse;
 import com.personal.sagapattern.core.repository.EventTopUpRepository;
-import com.personal.sagapattern.orchestration.exception.OrchestrationException;
-import com.personal.sagapattern.orchestration.service.SagaOrchestrationService;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,16 +38,6 @@ import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class WalletServiceTest {
@@ -45,22 +52,11 @@ class WalletServiceTest {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private TopUpRequest topUpRequest = TopUpRequest.builder()
-            .eventId(mockEventId)
-            .cif("000000001")
-            .amount(10000)
-            .wallet("GO-PAY")
-            .destinationOfFund("00000000")
-            .build();
+    private TopUpRequest topUpRequest = TopUpRequest.builder().eventId(mockEventId).cif("000000001").amount(10000)
+            .wallet("GO-PAY").destinationOfFund("00000000").build();
 
-    private TopUpEventResult topUpEventResult = TopUpEventResult.builder()
-            .eventId(mockEventId)
-            .cif("000000001")
-            .amount(10000)
-            .wallet("GO-PAY")
-            .destinationOfFund("00000000")
-            .reason("REASON")
-            .build();
+    private TopUpEventResult topUpEventResult = TopUpEventResult.builder().eventId(mockEventId).cif("000000001")
+            .amount(10000).wallet("GO-PAY").destinationOfFund("00000000").reason("REASON").build();
 
     private void mockSaveOnTopUpActionRepository() {
         when(eventTopUpRepository.save(any(EventTopUp.class))).then(new Answer<EventTopUp>() {
@@ -75,11 +71,7 @@ class WalletServiceTest {
     }
 
     private List<String> eventTopics() {
-        return Arrays.asList(
-                "EVENT_TOP_UP",
-                "SURROUNDING_NOTIFICATION",
-                "TOP_UP_NOTIFICATION"
-        );
+        return Arrays.asList("EVENT_TOP_UP", "SURROUNDING_NOTIFICATION", "TOP_UP_NOTIFICATION");
     }
 
     @BeforeEach
@@ -89,10 +81,7 @@ class WalletServiceTest {
 
     @AfterEach
     void tearDown() {
-        clearInvocations(
-                eventTopUpRepository,
-                sagaOrchestrationService
-        );
+        clearInvocations(eventTopUpRepository, sagaOrchestrationService);
     }
 
     @Test

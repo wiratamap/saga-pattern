@@ -1,7 +1,10 @@
 package com.personal.sagapattern.core.service;
 
+import java.util.List;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.personal.librarykafkaproducer.orchestration.service.SagaOrchestrationService;
 import com.personal.sagapattern.core.enumeration.Status;
 import com.personal.sagapattern.core.exception.EventNotFoundException;
 import com.personal.sagapattern.core.model.EventTopUp;
@@ -9,12 +12,11 @@ import com.personal.sagapattern.core.model.dto.TopUpEventResult;
 import com.personal.sagapattern.core.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.model.dto.TopUpResponse;
 import com.personal.sagapattern.core.repository.EventTopUpRepository;
-import com.personal.sagapattern.orchestration.service.SagaOrchestrationService;
-import lombok.AllArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
@@ -28,13 +30,9 @@ public class WalletService {
     private List<String> eventTopics;
 
     public TopUpResponse topUp(TopUpRequest topUpRequest) throws JsonProcessingException {
-        EventTopUp eventTopUp = EventTopUp.builder()
-                .cif(topUpRequest.getCif())
-                .amount(topUpRequest.getAmount())
-                .wallet(topUpRequest.getWallet())
-                .destinationOfFund(topUpRequest.getDestinationOfFund())
-                .status(Status.PENDING)
-                .build();
+        EventTopUp eventTopUp = EventTopUp.builder().cif(topUpRequest.getCif()).amount(topUpRequest.getAmount())
+                .wallet(topUpRequest.getWallet()).destinationOfFund(topUpRequest.getDestinationOfFund())
+                .status(Status.PENDING).build();
 
         EventTopUp createdEventTopUp = eventTopUpRepository.save(eventTopUp);
         topUpRequest.setEventId(createdEventTopUp.getId());
@@ -42,13 +40,9 @@ public class WalletService {
         String topUpEventRequest = objectMapper.writeValueAsString(topUpRequest);
         sagaOrchestrationService.orchestrate(topUpEventRequest, eventTopics);
 
-        return TopUpResponse.builder()
-                .eventId(createdEventTopUp.getId())
-                .cif(createdEventTopUp.getCif())
-                .amount(createdEventTopUp.getAmount())
-                .wallet(createdEventTopUp.getWallet())
-                .destinationOfFund(createdEventTopUp.getDestinationOfFund())
-                .status(createdEventTopUp.getStatus())
+        return TopUpResponse.builder().eventId(createdEventTopUp.getId()).cif(createdEventTopUp.getCif())
+                .amount(createdEventTopUp.getAmount()).wallet(createdEventTopUp.getWallet())
+                .destinationOfFund(createdEventTopUp.getDestinationOfFund()).status(createdEventTopUp.getStatus())
                 .build();
     }
 
