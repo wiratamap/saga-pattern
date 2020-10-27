@@ -2,7 +2,7 @@ package com.personal.servicedlqplatform.core.deadletter.dto;
 
 import java.util.List;
 
-import com.personal.servicedlqplatform.orchestration.service.SagaOrchestrationService;
+import com.personal.librarykafkaproducer.orchestration.service.SagaOrchestrationService;
 
 public enum DeadLetterActionRequestDto {
     DELETE {
