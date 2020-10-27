@@ -29,12 +29,12 @@ public class DeadLetterService {
 	}
 
 	public void delete(UUID deadLetterId, DeadLetterDeleteRequestDto deleteRequest) {
-		DeadLetter availableDeadLetter = this.deadLetterRepository.findById(deadLetterId)
-				.orElseThrow(DeadLetterNotFoundException::new);
+		DeadLetter availableDeadLetter = this.deadLetterRepository.findById(deadLetterId).orElseThrow(
+				() -> new DeadLetterNotFoundException("Dead letter with id " + deadLetterId + " not found"));
 		String message = availableDeadLetter.getOriginalMessage();
 		List<String> originTopics = availableDeadLetter.getOriginTopics().stream().map(OriginTopic::getName)
 				.collect(Collectors.toList());
-		
+
 		this.deadLetterRepository.deleteById(deadLetterId);
 		deleteRequest.getDeleteAction().commit(sagaOrchestrationService, message, originTopics);
 	}
