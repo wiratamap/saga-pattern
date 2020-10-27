@@ -3,7 +3,7 @@ package com.personal.sagapattern.core.model;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
-import com.personal.sagapattern.common.model.AuditModel;
+import com.personal.librarycommonmodel.AuditModel;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
