@@ -24,8 +24,8 @@ public class DeadLetterService {
 		return this.deadLetterRepository.save(newDeadLetter);
 	}
 
-	public List<DeadLetter> fetchAll() {
-		return this.deadLetterRepository.findAll();
+	public List<DeadLetter> fetchAll(String eventId) {
+		return this.deadLetterRepository.findByOriginalMessageContaining(eventId);
 	}
 
 	public void delete(UUID deadLetterId, DeadLetterDeleteRequestDto deleteRequest) {

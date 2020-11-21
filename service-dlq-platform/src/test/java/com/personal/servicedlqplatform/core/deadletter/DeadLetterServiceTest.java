@@ -77,10 +77,11 @@ class DeadLetterServiceTest {
 
     @Test
     void fetchAll_shouldReturnAvailableDeadLetter_whenThereAreAvailableDeadLetter() {
+        String eventId = "";
         List<DeadLetter> deadLetters = Collections.singletonList(this.deadLetter());
-        Mockito.when(this.deadLetterRepository.findAll()).thenReturn(deadLetters);
+        Mockito.when(this.deadLetterRepository.findByOriginalMessageContaining(eventId)).thenReturn(deadLetters);
 
-        List<DeadLetter> availableDeadLetters = deadLetterService.fetchAll();
+        List<DeadLetter> availableDeadLetters = deadLetterService.fetchAll(eventId);
 
         Assertions.assertEquals(deadLetters, availableDeadLetters);
     }

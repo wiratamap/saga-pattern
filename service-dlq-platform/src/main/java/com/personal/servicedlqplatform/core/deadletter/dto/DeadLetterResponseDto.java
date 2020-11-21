@@ -1,5 +1,6 @@
 package com.personal.servicedlqplatform.core.deadletter.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,6 +22,7 @@ public class DeadLetterResponseDto {
     private String originalMessage;
     private String reason;
     private List<OriginTopicResponseDto> originTopics;
+    private LocalDateTime createdDate;
 
     public static DeadLetterResponseDto convertFromEntity(DeadLetter deadLetter) {
         ModelMapper modelMapper = new ModelMapper();
