@@ -3,7 +3,7 @@ package com.personal.sagapattern.consumer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.core.model.dto.TopUpRequest;
-import com.personal.sagapattern.core.service.AccountService;
+import com.personal.sagapattern.core.AccountService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

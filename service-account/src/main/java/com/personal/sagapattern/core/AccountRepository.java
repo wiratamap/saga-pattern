@@ -1,4 +1,4 @@
-package com.personal.sagapattern.core.repository;
+package com.personal.sagapattern.core;
 
 import com.personal.sagapattern.core.model.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
