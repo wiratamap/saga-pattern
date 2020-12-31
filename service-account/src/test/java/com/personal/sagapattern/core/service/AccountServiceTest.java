@@ -32,6 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,11 +46,10 @@ class AccountServiceTest {
     @Mock
     private AccountRepository accountRepository;
 
-    private List<String> transferEventTopics = transferEventTopics();
-
-    private List<String> failedTopUpEventTopics = failedTopUpEventTopics();
-
-    private List<String> successTopUpEventTopics = successTopUpEventTopics();
+    private List<String> transferEventTopics = Collections.singletonList("EVENT_TRANSFER_REQUEST");
+    private List<String> failedTopUpEventTopics = Collections.singletonList("EVENT_FAILED_TOP_UP_RESPONSE");
+    private List<String> successTopUpEventTopics = Collections.singletonList("EVENT_SUCCESS_TOP_UP_RESPONSE");
+    private List<String> accountUpdatedEventTopics = Collections.singletonList("EVENT_ACCOUNT_UPDATED");
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -60,27 +60,10 @@ class AccountServiceTest {
     private String wallet = "GO-PAY";
     private UUID mockEventId = UUID.fromString("7b5f770a-68e9-4723-bcad-8cb8c12f362d");
 
-    private List<String> transferEventTopics() {
-        return Collections.singletonList("EVENT_TRANSFER_REQUEST");
-    }
-
-    private List<String> failedTopUpEventTopics() {
-        return Collections.singletonList("EVENT_FAILED_TOP_UP_RESPONSE");
-    }
-
-    private List<String> successTopUpEventTopics() {
-        return Collections.singletonList("EVENT_SUCCESS_TOP_UP_RESPONSE");
-    }
-
     @BeforeEach
     void setUp() {
-        accountService = new AccountService(
-                accountRepository,
-                sagaOrchestrationService,
-                transferEventTopics,
-                failedTopUpEventTopics,
-                successTopUpEventTopics
-        );
+        accountService = new AccountService(accountRepository, sagaOrchestrationService, objectMapper,
+                transferEventTopics, failedTopUpEventTopics, successTopUpEventTopics, accountUpdatedEventTopics);
     }
 
     @AfterEach
@@ -89,29 +72,17 @@ class AccountServiceTest {
     }
 
     private void mockAccountIsExistWithFindByIdOnAccountRepository() {
-        Account account = Account.builder()
-                .cif(cif)
-                .balance(balance)
-                .build();
+        Account account = Account.builder().cif(cif).balance(balance).build();
         when(accountRepository.findByCif(anyString())).thenReturn(account);
     }
 
     @Test
     void topUp_shouldDeductBalanceAndOrchestrateTransferEvent_whenAccountIsExist() throws JsonProcessingException {
         int expectedNewBalance = 90000;
-        TopUpRequest topUpRequest = TopUpRequest.builder()
-                .eventId(mockEventId)
-                .cif(cif)
-                .amount(topUpAmount)
-                .wallet(wallet)
-                .destinationOfFund(destinationOfFund)
-                .build();
-        TransferRequest transferRequest = TransferRequest.builder()
-                .eventId(mockEventId)
-                .cif(cif)
-                .amount(topUpAmount)
-                .destinationOfFund(destinationOfFund)
-                .build();
+        TopUpRequest topUpRequest = TopUpRequest.builder().eventId(mockEventId).cif(cif).amount(topUpAmount)
+                .wallet(wallet).destinationOfFund(destinationOfFund).build();
+        TransferRequest transferRequest = TransferRequest.builder().eventId(mockEventId).cif(cif).amount(topUpAmount)
+                .destinationOfFund(destinationOfFund).build();
         String transferEventRequest = objectMapper.writeValueAsString(transferRequest);
         ArgumentCaptor<Account> account = ArgumentCaptor.forClass(Account.class);
         mockAccountIsExistWithFindByIdOnAccountRepository();
@@ -124,23 +95,14 @@ class AccountServiceTest {
     }
 
     @Test
-    void topUp_shouldNotDeductBalanceAndOrchestrateTransferEvent_whenAccountIsNotFound() throws JsonProcessingException {
-        TopUpRequest topUpRequest = TopUpRequest.builder()
-                .eventId(mockEventId)
-                .cif(cif)
-                .amount(topUpAmount)
-                .wallet(wallet)
-                .destinationOfFund(destinationOfFund)
-                .build();
+    void topUp_shouldNotDeductBalanceAndOrchestrateTransferEvent_whenAccountIsNotFound()
+            throws JsonProcessingException {
+        TopUpRequest topUpRequest = TopUpRequest.builder().eventId(mockEventId).cif(cif).amount(topUpAmount)
+                .wallet(wallet).destinationOfFund(destinationOfFund).build();
         String reason = "Source account with CIF " + cif + " not found";
-        TopUpEventResponse failedTopUp = TopUpEventResponse.builder()
-                .eventId(mockEventId)
-                .cif(topUpRequest.getCif())
-                .amount(topUpRequest.getAmount())
-                .wallet(topUpRequest.getWallet())
-                .destinationOfFund(topUpRequest.getDestinationOfFund())
-                .reason(reason)
-                .build();
+        TopUpEventResponse failedTopUp = TopUpEventResponse.builder().eventId(mockEventId).cif(topUpRequest.getCif())
+                .amount(topUpRequest.getAmount()).wallet(topUpRequest.getWallet())
+                .destinationOfFund(topUpRequest.getDestinationOfFund()).reason(reason).build();
         String failedTopUpEvent = objectMapper.writeValueAsString(failedTopUp);
         when(accountRepository.findByCif(cif)).thenReturn(null);
 
@@ -152,22 +114,14 @@ class AccountServiceTest {
     }
 
     @Test
-    void topUp_shouldNotDeductBalanceAndOrchestrateTransferEvent_whenTopUpAmountExceedsAccountBalance() throws JsonProcessingException {
+    void topUp_shouldNotDeductBalanceAndOrchestrateTransferEvent_whenTopUpAmountExceedsAccountBalance()
+            throws JsonProcessingException {
         int topUpAmount = 500000;
-        TopUpRequest topUpRequest = TopUpRequest.builder()
-                .eventId(mockEventId)
-                .cif(cif)
-                .amount(topUpAmount)
-                .wallet(wallet)
-                .destinationOfFund(destinationOfFund)
-                .build();
-        TopUpEventResponse failedTopUp = TopUpEventResponse.builder()
-                .eventId(mockEventId)
-                .cif(topUpRequest.getCif())
-                .amount(topUpRequest.getAmount())
-                .wallet(topUpRequest.getWallet())
-                .destinationOfFund(topUpRequest.getDestinationOfFund())
-                .reason("Top-up amount exceeds account balance")
+        TopUpRequest topUpRequest = TopUpRequest.builder().eventId(mockEventId).cif(cif).amount(topUpAmount)
+                .wallet(wallet).destinationOfFund(destinationOfFund).build();
+        TopUpEventResponse failedTopUp = TopUpEventResponse.builder().eventId(mockEventId).cif(topUpRequest.getCif())
+                .amount(topUpRequest.getAmount()).wallet(topUpRequest.getWallet())
+                .destinationOfFund(topUpRequest.getDestinationOfFund()).reason("Top-up amount exceeds account balance")
                 .build();
         String failedTopUpEvent = objectMapper.writeValueAsString(failedTopUp);
         mockAccountIsExistWithFindByIdOnAccountRepository();
@@ -182,21 +136,11 @@ class AccountServiceTest {
     @Test
     void topUp_shouldDeductBalanceAndOrchestrateSuccessTopUpEvent_whenAccountIsExist() throws JsonProcessingException {
         int expectedNewBalance = 90000;
-        TopUpRequest topUpRequest = TopUpRequest.builder()
-                .eventId(mockEventId)
-                .cif(cif)
-                .amount(topUpAmount)
-                .wallet(wallet)
-                .destinationOfFund(destinationOfFund)
-                .build();
-        TopUpEventResponse successTopUp = TopUpEventResponse.builder()
-                .eventId(mockEventId)
-                .cif(topUpRequest.getCif())
-                .amount(topUpRequest.getAmount())
-                .wallet(topUpRequest.getWallet())
-                .destinationOfFund(topUpRequest.getDestinationOfFund())
-                .reason("SUCCESS")
-                .build();
+        TopUpRequest topUpRequest = TopUpRequest.builder().eventId(mockEventId).cif(cif).amount(topUpAmount)
+                .wallet(wallet).destinationOfFund(destinationOfFund).build();
+        TopUpEventResponse successTopUp = TopUpEventResponse.builder().eventId(mockEventId).cif(topUpRequest.getCif())
+                .amount(topUpRequest.getAmount()).wallet(topUpRequest.getWallet())
+                .destinationOfFund(topUpRequest.getDestinationOfFund()).reason("SUCCESS").build();
         String successTopUpEvent = objectMapper.writeValueAsString(successTopUp);
         ArgumentCaptor<Account> account = ArgumentCaptor.forClass(Account.class);
         mockAccountIsExistWithFindByIdOnAccountRepository();
@@ -208,4 +152,19 @@ class AccountServiceTest {
         verify(sagaOrchestrationService).orchestrate(successTopUpEvent, successTopUpEventTopics);
     }
 
+    @Test
+    void topUp_shouldDeductBalanceAndOrchestrateAccountUpdatedEvent_whenAccountIsExist()
+            throws JsonProcessingException {
+        int expectedNewBalance = 90000;
+        TopUpRequest topUpRequest = TopUpRequest.builder().eventId(mockEventId).cif(cif).amount(topUpAmount)
+                .wallet(wallet).destinationOfFund(destinationOfFund).build();
+        ArgumentCaptor<Account> account = ArgumentCaptor.forClass(Account.class);
+        mockAccountIsExistWithFindByIdOnAccountRepository();
+
+        accountService.topUp(topUpRequest);
+
+        verify(accountRepository).save(account.capture());
+        assertEquals(expectedNewBalance, account.getValue().getBalance());
+        verify(sagaOrchestrationService).orchestrate(Mockito.anyString(), Mockito.eq(accountUpdatedEventTopics));
+    }
 }

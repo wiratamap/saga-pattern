@@ -30,7 +30,7 @@ public class AccountService {
 
     private final SagaOrchestrationService sagaOrchestrationService;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Value("${event.transfer.topics}")
     private List<String> transferEventTopics;
@@ -40,6 +40,9 @@ public class AccountService {
 
     @Value("${event.success-top-up.topics}")
     private List<String> successTopUpEventTopics;
+
+    @Value("${event.account-updated.topics}")
+    private List<String> accountUpdatedEventTopics;
 
     private boolean isAmountExceedsAccountBalance(TopUpRequest topUpRequest, Account account) {
         return topUpRequest.getAmount() > account.getBalance();
@@ -61,11 +64,13 @@ public class AccountService {
         sagaOrchestrationService.orchestrate(failedTopUpEventResponse, failedTopUpEventTopics);
     }
 
-    private void orchestrateSuccessTopUpEvent(TopUpRequest topUpRequest) throws JsonProcessingException {
+    private void orchestrateSuccessTopUpEvent(TopUpRequest topUpRequest, Account account)
+            throws JsonProcessingException {
         TransferRequest transferRequest = TransferRequest.builder().eventId(topUpRequest.getEventId())
                 .cif(topUpRequest.getCif()).amount(topUpRequest.getAmount())
                 .destinationOfFund(topUpRequest.getDestinationOfFund()).build();
         String transferRequestEvent = objectMapper.writeValueAsString(transferRequest);
+        String accountUpdatedEvent = objectMapper.writeValueAsString(account);
 
         logger.info("{}, CIF: {}", "SUCCESS", topUpRequest.getCif());
 
@@ -73,6 +78,7 @@ public class AccountService {
 
         sagaOrchestrationService.orchestrate(transferRequestEvent, transferEventTopics);
         sagaOrchestrationService.orchestrate(successTopUpEventResponse, successTopUpEventTopics);
+        sagaOrchestrationService.orchestrate(accountUpdatedEvent, accountUpdatedEventTopics);
     }
 
     public void topUp(TopUpRequest topUpRequest) throws JsonProcessingException {
@@ -94,6 +100,6 @@ public class AccountService {
         account.setBalance(newBalance);
         accountRepository.save(account);
 
-        orchestrateSuccessTopUpEvent(topUpRequest);
+        orchestrateSuccessTopUpEvent(topUpRequest, account);
     }
 }
