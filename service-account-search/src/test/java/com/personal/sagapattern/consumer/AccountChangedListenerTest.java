@@ -36,8 +36,19 @@ class AccountChangedListenerTest {
         String message = objectMapper.writeValueAsString(accountDto);
         Account account = accountDto.convertTo(Account.class);
 
-        accountChangedListener.consume(message);
+        accountChangedListener.consumeCreatedAccountEvent(message);
 
         verify(accountService).create(account);
+    }
+
+    @Test
+    void consume_shouldInvokeUpdateWithUpdatedAccountData() throws JsonProcessingException {
+        AccountDto accountDto = AccountDto.builder().cif("00000001").balance(10000).gender(Gender.MALE).build();
+        String message = objectMapper.writeValueAsString(accountDto);
+        Account account = accountDto.convertTo(Account.class);
+
+        accountChangedListener.consumeUpdatedAccountEvent(message);
+
+        verify(accountService).update(account);
     }
 }

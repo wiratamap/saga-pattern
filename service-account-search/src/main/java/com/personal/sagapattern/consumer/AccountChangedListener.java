@@ -24,14 +24,26 @@ public class AccountChangedListener {
 
     private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "${event.account-migration.topic}")
-    void consume(@Payload String message) throws JsonProcessingException {
+    @KafkaListener(topics = "${event.account-created.topic}")
+    void consumeCreatedAccountEvent(@Payload String message) throws JsonProcessingException {
         AccountDto accountDto = objectMapper.readValue(message, AccountDto.class);
         Account account = accountDto.convertTo(Account.class);
-        logger.info("Event detected, data: {}", accountDto);
+        logger.info("Account create action detected, data: {}", accountDto);
         logger.info("START ::: Processing Event");
 
         accountService.create(account);
+
+        logger.info("FINISH ::: Processing Event");
+    }
+
+    @KafkaListener(topics = "${event.account-updated.topic}")
+    void consumeUpdatedAccountEvent(@Payload String message) throws JsonProcessingException {
+        AccountDto accountDto = objectMapper.readValue(message, AccountDto.class);
+        Account account = accountDto.convertTo(Account.class);
+        logger.info("Account update action detected, data: {}", accountDto);
+        logger.info("START ::: Processing Event");
+
+        accountService.update(account);
 
         logger.info("FINISH ::: Processing Event");
     }

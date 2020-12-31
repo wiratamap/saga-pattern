@@ -1,5 +1,7 @@
 package com.personal.sagapattern.core.service;
 
+import java.util.Optional;
+
 import com.personal.sagapattern.core.AccountRepository;
 import com.personal.sagapattern.core.AccountService;
 import com.personal.sagapattern.core.model.Account;
@@ -22,9 +24,29 @@ class AccountServiceTest {
     @Test
     void create_shouldSaveNewAccountData_whenCreateIsInvoked() {
         Account account = Account.builder().name("John Doe").cif("ACC1").build();
-        
+
         accountService.create(account);
 
         Mockito.verify(accountRepository).save(account);
+    }
+
+    @Test
+    void update_shouldUpdateExistingAccountData_whenAccountIsExist() {
+        Account account = Account.builder().name("John Doe").cif("ACC1").build();
+        Mockito.when(accountRepository.findByCif(account.getCif())).thenReturn(Optional.of(account));
+
+        accountService.update(account);
+
+        Mockito.verify(accountRepository).save(account);
+    }
+
+    @Test
+    void update_shouldThrowExceptionAndNotSavingAccountData_whenAccountIsNotExist() {
+        Account account = Account.builder().name("John Doe").cif("ACC1").build();
+        Mockito.when(accountRepository.findByCif(account.getCif())).thenReturn(Optional.empty());
+
+        accountService.update(account);
+
+        Mockito.verify(accountRepository, Mockito.never()).save(account);
     }
 }
