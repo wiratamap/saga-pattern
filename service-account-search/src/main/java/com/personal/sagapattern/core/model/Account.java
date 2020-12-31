@@ -1,13 +1,14 @@
 package com.personal.sagapattern.core.model;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.OneToOne;
+import java.util.UUID;
 
 import com.personal.sagapattern.common.model.AuditModel;
 import com.personal.sagapattern.common.model.DataTransferAble;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,37 +17,25 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @EqualsAndHashCode(callSuper = true)
-@Entity
+@Document(indexName = "account", type = "_doc")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Account extends AuditModel implements DataTransferAble {
-    @Column
+    @Id
+    private UUID id;
     private String name;
-
-    @Column
-    @Enumerated(EnumType.STRING)
     private Gender gender;
-
-    @Column
     private String email;
-
-    @Column
     private String phoneNumber;
-
-    @Column
     private String cif;
-
-    @Column
     private long balance;
-
-    @Column
     private boolean isPriority;
 
-    @OneToOne(mappedBy = "account")
+    @Field(type = FieldType.Nested, includeInParent = true)
     private AccountDetail accountDetail;
 
-    @OneToOne(mappedBy = "account")
+    @Field(type = FieldType.Nested, includeInParent = true)
     private PersonalInformation personalInformation;
 }

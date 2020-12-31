@@ -3,14 +3,19 @@ package com.personal.sagapattern.core.model.dto;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.personal.sagapattern.common.model.DataTransferAble;
 import com.personal.sagapattern.core.model.Gender;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class AccountDto {
+@AllArgsConstructor
+@Builder
+public class AccountDto implements DataTransferAble {
     private UUID id;
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;
