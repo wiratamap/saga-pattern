@@ -8,10 +8,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @SpringBootApplication
 @Configuration
 @EnableJpaAuditing
-public class ServiceWalletApplication {
+public class ServiceTransactionApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(ServiceWalletApplication.class, args);
+        SpringApplication.run(ServiceTransactionApplication.class, args);
     }
 
 }
