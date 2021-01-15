@@ -1,9 +1,8 @@
-package com.personal.sagapattern.core.controller;
+package com.personal.sagapattern.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.core.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.model.dto.TopUpResponse;
-import com.personal.sagapattern.core.repository.EventTopUpRepository;
 import com.personal.sagapattern.orchestration.service.SagaOrchestrationService;
 
 import org.junit.jupiter.api.AfterEach;

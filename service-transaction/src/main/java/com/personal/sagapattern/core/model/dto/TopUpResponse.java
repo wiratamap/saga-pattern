@@ -1,12 +1,13 @@
 package com.personal.sagapattern.core.model.dto;
 
-import com.personal.sagapattern.core.enumeration.Status;
+import java.util.UUID;
+
+import com.personal.sagapattern.core.model.Status;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor

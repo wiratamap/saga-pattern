@@ -1,7 +1,7 @@
 cd ./service-account
 mvn clean test
 cd ../
-cd ./service-wallet
+cd ./service-transaction
 mvn clean test
 cd ../
 cd ./service-dlq-platform

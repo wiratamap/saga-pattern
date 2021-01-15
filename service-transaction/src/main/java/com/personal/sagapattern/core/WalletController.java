@@ -1,11 +1,10 @@
-package com.personal.sagapattern.core.controller;
+package com.personal.sagapattern.core;
 
 import javax.validation.Valid;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.personal.sagapattern.core.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.model.dto.TopUpResponse;
-import com.personal.sagapattern.core.service.WalletService;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

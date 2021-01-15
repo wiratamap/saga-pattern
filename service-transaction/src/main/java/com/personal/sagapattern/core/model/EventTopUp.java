@@ -6,7 +6,6 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
 import com.personal.sagapattern.common.model.AuditModel;
-import com.personal.sagapattern.core.enumeration.Status;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
