@@ -4,12 +4,12 @@ import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.personal.sagapattern.common.model.DeadLetterMessage;
 import com.personal.sagapattern.common.model.Disposable;
-import com.personal.sagapattern.core.TransactionService;
-import com.personal.sagapattern.core.model.Status;
-import com.personal.sagapattern.core.model.dto.DeadLetterMessage;
-import com.personal.sagapattern.core.model.dto.TopUpEventResult;
-import com.personal.sagapattern.core.model.dto.TopUpRequest;
+import com.personal.sagapattern.core.event_top_up.model.Status;
+import com.personal.sagapattern.core.event_top_up.model.dto.TopUpEventResult;
+import com.personal.sagapattern.core.event_top_up.model.dto.TopUpRequest;
+import com.personal.sagapattern.core.transaction.TransactionService;
 import com.personal.sagapattern.orchestration.service.SagaOrchestrationService;
 
 import org.slf4j.Logger;

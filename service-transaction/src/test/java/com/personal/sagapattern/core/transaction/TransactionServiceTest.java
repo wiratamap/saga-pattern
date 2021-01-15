@@ -1,4 +1,4 @@
-package com.personal.sagapattern.core;
+package com.personal.sagapattern.core.transaction;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -18,12 +18,13 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.personal.sagapattern.core.exception.EventNotFoundException;
-import com.personal.sagapattern.core.model.EventTopUp;
-import com.personal.sagapattern.core.model.Status;
-import com.personal.sagapattern.core.model.dto.TopUpEventResult;
-import com.personal.sagapattern.core.model.dto.TopUpRequest;
-import com.personal.sagapattern.core.model.dto.TopUpResponse;
+import com.personal.sagapattern.core.event_top_up.EventTopUpRepository;
+import com.personal.sagapattern.core.event_top_up.exception.EventNotFoundException;
+import com.personal.sagapattern.core.event_top_up.model.EventTopUp;
+import com.personal.sagapattern.core.event_top_up.model.Status;
+import com.personal.sagapattern.core.event_top_up.model.dto.TopUpEventResult;
+import com.personal.sagapattern.core.event_top_up.model.dto.TopUpRequest;
+import com.personal.sagapattern.core.event_top_up.model.dto.TopUpResponse;
 import com.personal.sagapattern.orchestration.exception.OrchestrationException;
 import com.personal.sagapattern.orchestration.service.SagaOrchestrationService;
 

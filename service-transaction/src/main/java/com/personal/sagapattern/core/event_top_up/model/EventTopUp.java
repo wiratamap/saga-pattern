@@ -1,4 +1,4 @@
-package com.personal.sagapattern.core.model;
+package com.personal.sagapattern.core.event_top_up.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

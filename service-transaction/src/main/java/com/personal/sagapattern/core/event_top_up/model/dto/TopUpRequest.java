@@ -1,4 +1,4 @@
-package com.personal.sagapattern.core.model.dto;
+package com.personal.sagapattern.core.event_top_up.model.dto;
 
 import java.util.UUID;
 

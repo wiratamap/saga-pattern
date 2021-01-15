@@ -1,8 +1,6 @@
-package com.personal.sagapattern.core.model.dto;
+package com.personal.sagapattern.common.model;
 
 import java.util.List;
-
-import com.personal.sagapattern.common.model.Disposable;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -6,9 +6,9 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.personal.sagapattern.core.TransactionService;
-import com.personal.sagapattern.core.model.Status;
-import com.personal.sagapattern.core.model.dto.TopUpEventResult;
+import com.personal.sagapattern.core.event_top_up.model.Status;
+import com.personal.sagapattern.core.event_top_up.model.dto.TopUpEventResult;
+import com.personal.sagapattern.core.transaction.TransactionService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,11 +24,11 @@ class EventTopUpSuccessListenerTest {
     private EventTopUpSuccessListener eventTopUpSuccessListener;
 
     @Mock
-    private TransactionService walletService;
+    private TransactionService transactionService;
 
     @BeforeEach
     void setUp() {
-        eventTopUpSuccessListener = new EventTopUpSuccessListener(walletService);
+        eventTopUpSuccessListener = new EventTopUpSuccessListener(transactionService);
     }
 
     @Test
@@ -39,7 +39,7 @@ class EventTopUpSuccessListenerTest {
 
         eventTopUpSuccessListener.consume(message);
 
-        verify(walletService).updateStatus(topUpEventResult, Status.SUCCESS);
+        verify(transactionService).updateStatus(topUpEventResult, Status.SUCCESS);
     }
 
 }

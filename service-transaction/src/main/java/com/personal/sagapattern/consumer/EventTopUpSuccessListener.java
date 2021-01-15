@@ -2,9 +2,9 @@ package com.personal.sagapattern.consumer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.personal.sagapattern.core.TransactionService;
-import com.personal.sagapattern.core.model.Status;
-import com.personal.sagapattern.core.model.dto.TopUpEventResult;
+import com.personal.sagapattern.core.event_top_up.model.Status;
+import com.personal.sagapattern.core.event_top_up.model.dto.TopUpEventResult;
+import com.personal.sagapattern.core.transaction.TransactionService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

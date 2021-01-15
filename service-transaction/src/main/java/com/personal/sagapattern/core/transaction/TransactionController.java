@@ -1,10 +1,10 @@
-package com.personal.sagapattern.core;
+package com.personal.sagapattern.core.transaction;
 
 import javax.validation.Valid;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.personal.sagapattern.core.model.dto.TopUpRequest;
-import com.personal.sagapattern.core.model.dto.TopUpResponse;
+import com.personal.sagapattern.core.event_top_up.model.dto.TopUpRequest;
+import com.personal.sagapattern.core.event_top_up.model.dto.TopUpResponse;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

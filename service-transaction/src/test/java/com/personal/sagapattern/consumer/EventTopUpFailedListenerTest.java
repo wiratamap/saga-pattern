@@ -9,12 +9,12 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.personal.sagapattern.common.model.DeadLetterMessage;
 import com.personal.sagapattern.common.model.Disposable;
-import com.personal.sagapattern.core.TransactionService;
-import com.personal.sagapattern.core.model.Status;
-import com.personal.sagapattern.core.model.dto.DeadLetterMessage;
-import com.personal.sagapattern.core.model.dto.TopUpEventResult;
-import com.personal.sagapattern.core.model.dto.TopUpRequest;
+import com.personal.sagapattern.core.event_top_up.model.Status;
+import com.personal.sagapattern.core.event_top_up.model.dto.TopUpEventResult;
+import com.personal.sagapattern.core.event_top_up.model.dto.TopUpRequest;
+import com.personal.sagapattern.core.transaction.TransactionService;
 import com.personal.sagapattern.orchestration.service.SagaOrchestrationService;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +31,7 @@ class EventTopUpFailedListenerTest {
 	private EventTopUpFailedListener eventTopUpFailedListener;
 
 	@Mock
-	private TransactionService walletService;
+	private TransactionService transactionService;
 
 	@Mock
 	private SagaOrchestrationService sagaOrchestrationService;
@@ -42,7 +42,7 @@ class EventTopUpFailedListenerTest {
 
 	@BeforeEach
 	void setUp() {
-		eventTopUpFailedListener = new EventTopUpFailedListener(walletService, sagaOrchestrationService,
+		eventTopUpFailedListener = new EventTopUpFailedListener(transactionService, sagaOrchestrationService,
 				deadLetterTopics, originTopics);
 	}
 
@@ -54,7 +54,7 @@ class EventTopUpFailedListenerTest {
 
 		eventTopUpFailedListener.consume(message);
 
-		verify(walletService).updateStatus(topUpEventResult, Status.FAIL);
+		verify(transactionService).updateStatus(topUpEventResult, Status.FAIL);
 	}
 
 	@Test
