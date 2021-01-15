@@ -4,10 +4,10 @@ import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.personal.sagapattern.common.enumeration.Status;
 import com.personal.sagapattern.core.event_top_up.EventTopUpRepository;
 import com.personal.sagapattern.core.event_top_up.exception.EventNotFoundException;
 import com.personal.sagapattern.core.event_top_up.model.EventTopUp;
-import com.personal.sagapattern.core.event_top_up.model.Status;
 import com.personal.sagapattern.core.event_top_up.model.dto.TopUpEventResult;
 import com.personal.sagapattern.core.event_top_up.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.event_top_up.model.dto.TopUpResponse;

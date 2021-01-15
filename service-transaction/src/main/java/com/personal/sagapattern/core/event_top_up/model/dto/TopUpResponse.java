@@ -2,7 +2,7 @@ package com.personal.sagapattern.core.event_top_up.model.dto;
 
 import java.util.UUID;
 
-import com.personal.sagapattern.core.event_top_up.model.Status;
+import com.personal.sagapattern.common.enumeration.Status;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

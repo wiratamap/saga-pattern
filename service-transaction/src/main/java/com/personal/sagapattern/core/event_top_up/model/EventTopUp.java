@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
+import com.personal.sagapattern.common.enumeration.Status;
 import com.personal.sagapattern.common.model.AuditModel;
 
 import lombok.AllArgsConstructor;
