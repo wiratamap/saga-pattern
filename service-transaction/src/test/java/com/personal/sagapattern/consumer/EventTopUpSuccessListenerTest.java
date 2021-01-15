@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.personal.sagapattern.core.WalletService;
+import com.personal.sagapattern.core.TransactionService;
 import com.personal.sagapattern.core.model.Status;
 import com.personal.sagapattern.core.model.dto.TopUpEventResult;
 
@@ -24,7 +24,7 @@ class EventTopUpSuccessListenerTest {
     private EventTopUpSuccessListener eventTopUpSuccessListener;
 
     @Mock
-    private WalletService walletService;
+    private TransactionService walletService;
 
     @BeforeEach
     void setUp() {

@@ -15,14 +15,14 @@ import lombok.AllArgsConstructor;
 
 @RestController
 @AllArgsConstructor
-public class WalletController {
+public class TransactionController {
 
-    private final WalletService walletService;
+    private final TransactionService transactionService;
 
     @PostMapping("/transactions")
     public ResponseEntity<TopUpResponse> topUp(@Valid @RequestBody TopUpRequest topUpRequest)
             throws JsonProcessingException {
-        TopUpResponse topUpResponse = walletService.topUp(topUpRequest);
+        TopUpResponse topUpResponse = transactionService.topUp(topUpRequest);
 
         return ResponseEntity.ok(topUpResponse);
     }

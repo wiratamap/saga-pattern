@@ -22,7 +22,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 @SpringBootTest
 @AutoConfigureMockMvc
 @MockBean(SagaOrchestrationService.class)
-class WalletControllerTest {
+class TransactionControllerTest {
     @Autowired
     private MockMvc client;
 

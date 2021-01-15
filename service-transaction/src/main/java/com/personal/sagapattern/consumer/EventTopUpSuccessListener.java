@@ -2,7 +2,7 @@ package com.personal.sagapattern.consumer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.personal.sagapattern.core.WalletService;
+import com.personal.sagapattern.core.TransactionService;
 import com.personal.sagapattern.core.model.Status;
 import com.personal.sagapattern.core.model.dto.TopUpEventResult;
 
@@ -20,7 +20,7 @@ public class EventTopUpSuccessListener {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private final WalletService walletService;
+    private final TransactionService walletService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 

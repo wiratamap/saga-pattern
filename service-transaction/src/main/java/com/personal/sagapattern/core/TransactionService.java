@@ -19,12 +19,14 @@ import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
-public class WalletService {
+public class TransactionService {
 
     private final SagaOrchestrationService sagaOrchestrationService;
 
     private final EventTopUpRepository eventTopUpRepository;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Value("${event.top-up.topics}")
     private List<String> eventTopics;
 

@@ -39,17 +39,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
 @ExtendWith(MockitoExtension.class)
-class WalletServiceTest {
+class TransactionServiceTest {
 
-    UUID mockEventId = UUID.fromString("7b5f770a-68e9-4723-bcad-8cb8c12f362d");
-    private WalletService walletService;
+    private TransactionService transactionService;
+
     @Mock
     private SagaOrchestrationService sagaOrchestrationService;
+
     @Mock
     private EventTopUpRepository eventTopUpRepository;
+
     private List<String> eventTopics = eventTopics();
 
     private ObjectMapper objectMapper = new ObjectMapper();
+
+    private UUID mockEventId = UUID.fromString("7b5f770a-68e9-4723-bcad-8cb8c12f362d");
 
     private TopUpRequest topUpRequest = TopUpRequest.builder().eventId(mockEventId).cif("000000001").amount(10000)
             .wallet("GO-PAY").destinationOfFund("00000000").build();
@@ -75,7 +79,7 @@ class WalletServiceTest {
 
     @BeforeEach
     void setUp() {
-        walletService = new WalletService(sagaOrchestrationService, eventTopUpRepository, eventTopics);
+        transactionService = new TransactionService(sagaOrchestrationService, eventTopUpRepository, eventTopics);
     }
 
     @AfterEach
@@ -88,7 +92,7 @@ class WalletServiceTest {
         mockSaveOnTopUpActionRepository();
         String topUpEvent = objectMapper.writeValueAsString(topUpRequest);
 
-        TopUpResponse topUpResponse = walletService.topUp(topUpRequest);
+        TopUpResponse topUpResponse = transactionService.topUp(topUpRequest);
 
         verify(eventTopUpRepository).save(any(EventTopUp.class));
         verify(sagaOrchestrationService).orchestrate(topUpEvent, eventTopics);
@@ -100,7 +104,7 @@ class WalletServiceTest {
         mockSaveOnTopUpActionRepository();
         doThrow(OrchestrationException.class).when(sagaOrchestrationService).orchestrate(anyString(), anyList());
 
-        Executable topUpAction = () -> walletService.topUp(topUpRequest);
+        Executable topUpAction = () -> transactionService.topUp(topUpRequest);
 
         verify(eventTopUpRepository, never()).save(any(EventTopUp.class));
         assertThrows(OrchestrationException.class, topUpAction);
@@ -113,7 +117,7 @@ class WalletServiceTest {
         eventTopUp.setStatus(Status.SUCCESS);
         when(eventTopUpRepository.findById(mockEventId)).thenReturn(Optional.of(eventTopUp));
 
-        walletService.updateStatus(topUpEventResult, Status.SUCCESS);
+        transactionService.updateStatus(topUpEventResult, Status.SUCCESS);
 
         verify(eventTopUpRepository).save(eventTopUpArgumentCaptor.capture());
         assertEquals(Status.SUCCESS, eventTopUpArgumentCaptor.getValue().getStatus());
@@ -123,7 +127,7 @@ class WalletServiceTest {
     void updateStatus_shouldNotUpdateStatusAndThrowEventNotFound_whenEventIsNotFound() {
         when(eventTopUpRepository.findById(mockEventId)).thenReturn(Optional.empty());
 
-        Executable updateStatusAction = () -> walletService.updateStatus(topUpEventResult, Status.SUCCESS);
+        Executable updateStatusAction = () -> transactionService.updateStatus(topUpEventResult, Status.SUCCESS);
 
         verify(eventTopUpRepository, never()).save(any(EventTopUp.class));
         assertThrows(EventNotFoundException.class, updateStatusAction);

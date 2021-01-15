@@ -10,7 +10,7 @@ import java.util.UUID;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.common.model.Disposable;
-import com.personal.sagapattern.core.WalletService;
+import com.personal.sagapattern.core.TransactionService;
 import com.personal.sagapattern.core.model.Status;
 import com.personal.sagapattern.core.model.dto.DeadLetterMessage;
 import com.personal.sagapattern.core.model.dto.TopUpEventResult;
@@ -31,7 +31,7 @@ class EventTopUpFailedListenerTest {
 	private EventTopUpFailedListener eventTopUpFailedListener;
 
 	@Mock
-	private WalletService walletService;
+	private TransactionService walletService;
 
 	@Mock
 	private SagaOrchestrationService sagaOrchestrationService;
