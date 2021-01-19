@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.core.event_top_up.EventTopUpRepository;
 import com.personal.sagapattern.core.event_top_up.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.event_top_up.model.dto.TopUpResponse;
+import com.personal.sagapattern.core.transaction.model.dto.CreateTransactionRequestDto;
+import com.personal.sagapattern.core.transaction.model.dto.CreateTransactionResponseDto;
+import com.personal.sagapattern.core.transaction.model.dto.DestinationAccountInformationDto;
 import com.personal.sagapattern.orchestration.service.SagaOrchestrationService;
 
 import org.junit.jupiter.api.AfterEach;
@@ -33,9 +36,13 @@ class TransactionControllerTest {
     @Autowired
     private EventTopUpRepository eventTopUpRepository;
 
+    @Autowired
+    private TransactionRepository transactionRepository;
+
     @AfterEach
     void tearDown() {
         eventTopUpRepository.deleteAll();
+        transactionRepository.deleteAll();
     }
 
     @Test
@@ -53,5 +60,25 @@ class TransactionControllerTest {
         Assertions.assertEquals(topUpRequest.getCif(), topUpResponse.getCif());
         Assertions.assertEquals(topUpRequest.getAmount(), topUpResponse.getAmount());
         Assertions.assertEquals(topUpRequest.getWallet(), topUpResponse.getWallet());
+    }
+
+    @Test
+    void create_shouldReturnStatusCreatedAndCreateTransactionResponse_whenPostTransactionsIsInvoked() throws Exception {
+        DestinationAccountInformationDto destinationAccountInformationDto = DestinationAccountInformationDto.builder()
+                .accountHolderName("Bertha Doe").accountProvider("GO-PAY").externalAccountNumber("987654321").build();
+        CreateTransactionRequestDto createTransactionRequestDto = CreateTransactionRequestDto.builder()
+                .sourceExternalAccountNumber("123456789")
+                .destinationAccountInformation(destinationAccountInformationDto).amount(100_000).currency("IDR")
+                .build();
+        String createTransactionRequestJson = objectMapper.writeValueAsString(createTransactionRequestDto);
+        RequestBuilder request = MockMvcRequestBuilders.post("/v2/transactions").content(createTransactionRequestJson)
+                .contentType(MediaType.APPLICATION_JSON);
+
+        MvcResult result = client.perform(request).andExpect(MockMvcResultMatchers.status().isCreated()).andReturn();
+        CreateTransactionResponseDto createTransactionResponse = objectMapper
+                .readValue(result.getResponse().getContentAsString(), CreateTransactionResponseDto.class);
+
+        Assertions.assertEquals(createTransactionRequestDto.getCurrency(), createTransactionResponse.getCurrency());
+        Assertions.assertEquals(createTransactionRequestDto.getAmount(), createTransactionResponse.getAmount());
     }
 }

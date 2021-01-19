@@ -9,10 +9,10 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 
 import com.personal.sagapattern.common.enumeration.Status;
 import com.personal.sagapattern.common.model.AuditModel;
+import com.personal.sagapattern.common.model.DataTransferAble;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Transaction extends AuditModel {
+public class Transaction extends AuditModel implements DataTransferAble {
     @Column
     private long amount;
 

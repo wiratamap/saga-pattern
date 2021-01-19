@@ -77,6 +77,8 @@ public class TransactionService {
         EventTransactionAccountInformation destinationAccount = creditedAccount
                 .convertTo(EventTransactionAccountInformation.class);
         EventTransactionRequest transactionRequest = EventTransactionRequest.builder()
+                .id(createdTransaction.getId())
+                .eventId(createdTransaction.getId())
                 .amount(createdTransaction.getAmount()).currency(createdTransaction.getCurrency())
                 .note(createdTransaction.getNote()).sourceAccountInformation(sourceAccount)
                 .destinationAccountInformation(destinationAccount).build();

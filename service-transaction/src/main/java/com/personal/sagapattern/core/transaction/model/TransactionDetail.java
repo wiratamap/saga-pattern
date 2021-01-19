@@ -2,6 +2,8 @@ package com.personal.sagapattern.core.transaction.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 
 import com.personal.sagapattern.common.model.AuditModel;
 import com.personal.sagapattern.common.model.DataTransferAble;
@@ -29,5 +31,6 @@ public class TransactionDetail extends AuditModel implements DataTransferAble {
     private String accountProvider;
 
     @Column
+    @Enumerated(value = EnumType.STRING)
     private TransactionType transactionType;
 }
