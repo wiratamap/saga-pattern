@@ -5,9 +5,13 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
+import com.personal.sagapattern.common.enumeration.Status;
 import com.personal.sagapattern.common.model.AuditModel;
 
 import lombok.AllArgsConstructor;
@@ -31,6 +35,13 @@ public class Transaction extends AuditModel {
 
     @Column
     private String note;
+
+    @Column
+    @Enumerated(value = EnumType.STRING)
+    private Status status;
+
+    @Column
+    private String failReason;
 
     @OneToMany(orphanRemoval = true, cascade = CascadeType.ALL)
     @JoinColumn(name = "transaction_id")

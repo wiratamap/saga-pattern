@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,20 +22,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.common.enumeration.Status;
 import com.personal.sagapattern.core.event_top_up.EventTopUpRepository;
 import com.personal.sagapattern.core.event_top_up.exception.EventNotFoundException;
+import com.personal.sagapattern.core.event_top_up.exception.TransactionDetailNotFoundException;
 import com.personal.sagapattern.core.event_top_up.model.EventTopUp;
 import com.personal.sagapattern.core.event_top_up.model.dto.TopUpEventResult;
 import com.personal.sagapattern.core.event_top_up.model.dto.TopUpRequest;
 import com.personal.sagapattern.core.event_top_up.model.dto.TopUpResponse;
+import com.personal.sagapattern.core.transaction.model.Transaction;
+import com.personal.sagapattern.core.transaction.model.dto.CreateTransactionRequestDto;
+import com.personal.sagapattern.core.transaction.model.dto.DestinationAccountInformationDto;
 import com.personal.sagapattern.orchestration.exception.OrchestrationException;
 import com.personal.sagapattern.orchestration.service.SagaOrchestrationService;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
@@ -50,7 +57,11 @@ class TransactionServiceTest {
     @Mock
     private EventTopUpRepository eventTopUpRepository;
 
-    private List<String> eventTopics = eventTopics();
+    @Mock
+    private TransactionRepository transactionRepository;
+
+    private List<String> eventTopics = Arrays.asList("EVENT_TRANSACTION_REQUEST", "SURROUNDING_NOTIFICATION",
+            "TRANSFER_NOTIFICATION");
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -63,7 +74,7 @@ class TransactionServiceTest {
             .amount(10000).wallet("GO-PAY").destinationOfFund("00000000").reason("REASON").build();
 
     private void mockSaveOnTopUpActionRepository() {
-        when(eventTopUpRepository.save(any(EventTopUp.class))).then(new Answer<EventTopUp>() {
+        Mockito.when(eventTopUpRepository.save(any(EventTopUp.class))).then(new Answer<EventTopUp>() {
             @Override
             public EventTopUp answer(InvocationOnMock invocation) throws Throwable {
                 EventTopUp eventTopUp = invocation.getArgument(0);
@@ -74,13 +85,35 @@ class TransactionServiceTest {
         });
     }
 
-    private List<String> eventTopics() {
-        return Arrays.asList("EVENT_TOP_UP", "SURROUNDING_NOTIFICATION", "TOP_UP_NOTIFICATION");
+    private void mockSaveOnTransactionRepository() {
+        Mockito.when(transactionRepository.save(any(Transaction.class))).then(new Answer<Transaction>() {
+            @Override
+            public Transaction answer(InvocationOnMock invocation) throws Throwable {
+                Transaction transaction = invocation.getArgument(0);
+                transaction.setId(mockEventId);
+
+                return transaction;
+            }
+        });
+    }
+
+    private void mockEmptyTransactionDetailsSaveOnTransactionRepository() {
+        Mockito.when(transactionRepository.save(any(Transaction.class))).then(new Answer<Transaction>() {
+            @Override
+            public Transaction answer(InvocationOnMock invocation) throws Throwable {
+                Transaction transaction = invocation.getArgument(0);
+                transaction.setId(mockEventId);
+                transaction.setTransactionDetails(Collections.emptyList());
+
+                return transaction;
+            }
+        });
     }
 
     @BeforeEach
     void setUp() {
-        transactionService = new TransactionService(sagaOrchestrationService, eventTopUpRepository, eventTopics);
+        this.transactionService = new TransactionService(sagaOrchestrationService, eventTopUpRepository,
+                transactionRepository, objectMapper, eventTopics);
     }
 
     @AfterEach
@@ -132,5 +165,41 @@ class TransactionServiceTest {
 
         verify(eventTopUpRepository, never()).save(any(EventTopUp.class));
         assertThrows(EventNotFoundException.class, updateStatusAction);
+    }
+
+    @Test
+    void create_shouldReturnCreatedTransactionAndOrchestrateTransactionRequest_whenCreateIsInvoked()
+            throws JsonProcessingException {
+        this.mockSaveOnTransactionRepository();
+        DestinationAccountInformationDto destinationAccountInformationDto = DestinationAccountInformationDto.builder()
+                .accountHolderName("Bertha Doe").accountProvider("GO-PAY").externalAccountNumber("987654321").build();
+        CreateTransactionRequestDto createTransactionRequestDto = CreateTransactionRequestDto.builder()
+                .sourceExternalAccountNumber("123456789")
+                .destinationAccountInformation(destinationAccountInformationDto).amount(100_000).currency("IDR")
+                .build();
+
+        Transaction createdTransaction = this.transactionService.create(createTransactionRequestDto);
+
+        Mockito.verify(transactionRepository).save(any(Transaction.class));
+        Assertions.assertEquals(100_000, createdTransaction.getAmount());
+        Assertions.assertEquals(Status.PENDING, createdTransaction.getStatus());
+        Mockito.verify(sagaOrchestrationService).orchestrate(Mockito.anyString(), Mockito.eq(eventTopics));
+    }
+
+    @Test
+    void create_shouldThrowTransactionDetailNotFoundException() throws JsonProcessingException {
+        this.mockEmptyTransactionDetailsSaveOnTransactionRepository();
+        DestinationAccountInformationDto destinationAccountInformationDto = DestinationAccountInformationDto.builder()
+                .accountHolderName("Bertha Doe").accountProvider("GO-PAY").externalAccountNumber("987654321").build();
+        CreateTransactionRequestDto createTransactionRequestDto = CreateTransactionRequestDto.builder()
+                .sourceExternalAccountNumber("123456789")
+                .destinationAccountInformation(destinationAccountInformationDto).amount(100_000).currency("IDR")
+                .build();
+
+        Executable createAction = () -> this.transactionService.create(createTransactionRequestDto);
+
+        Assertions.assertThrows(TransactionDetailNotFoundException.class, createAction);
+        Mockito.verify(sagaOrchestrationService, Mockito.never()).orchestrate(Mockito.anyString(),
+                Mockito.eq(eventTopics));
     }
 }

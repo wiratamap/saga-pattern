@@ -4,6 +4,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 
 import com.personal.sagapattern.common.model.AuditModel;
+import com.personal.sagapattern.common.model.DataTransferAble;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,7 +18,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransactionDetail extends AuditModel {
+public class TransactionDetail extends AuditModel implements DataTransferAble {
     @Column
     private String accountHolderName;
 

@@ -2,6 +2,8 @@ package com.personal.sagapattern.core.transaction.model.dto;
 
 import javax.validation.constraints.NotNull;
 
+import com.personal.sagapattern.common.model.DataTransferAble;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CreateTransactionRequestDto {
+public class CreateTransactionRequestDto implements DataTransferAble {
     @NotNull(message = "sourceExternalAccountNumber cannot be null")
     private String sourceExternalAccountNumber;
 
@@ -25,7 +27,4 @@ public class CreateTransactionRequestDto {
     private String currency;
 
     private String note;
-
-    @NotNull(message = "actionType cannot be null")
-    private ActionTypeDto actionType;
 }
