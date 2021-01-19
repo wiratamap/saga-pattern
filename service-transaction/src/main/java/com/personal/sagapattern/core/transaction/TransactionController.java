@@ -3,8 +3,6 @@ package com.personal.sagapattern.core.transaction;
 import javax.validation.Valid;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.personal.sagapattern.core.event_top_up.model.dto.TopUpRequest;
-import com.personal.sagapattern.core.event_top_up.model.dto.TopUpResponse;
 import com.personal.sagapattern.core.transaction.model.Transaction;
 import com.personal.sagapattern.core.transaction.model.dto.CreateTransactionRequestDto;
 import com.personal.sagapattern.core.transaction.model.dto.CreateTransactionResponseDto;
@@ -24,14 +22,6 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @PostMapping("/transactions")
-    public ResponseEntity<TopUpResponse> topUp(@Valid @RequestBody TopUpRequest topUpRequest)
-            throws JsonProcessingException {
-        TopUpResponse topUpResponse = transactionService.topUp(topUpRequest);
-
-        return ResponseEntity.ok(topUpResponse);
-    }
-
-    @PostMapping("/v2/transactions")
     public ResponseEntity<CreateTransactionResponseDto> create(
             @Valid @RequestBody CreateTransactionRequestDto createTransactionRequestDto)
             throws JsonProcessingException {

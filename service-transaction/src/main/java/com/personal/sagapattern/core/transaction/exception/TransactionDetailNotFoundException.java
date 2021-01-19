@@ -1,4 +1,4 @@
-package com.personal.sagapattern.core.event_top_up.exception;
+package com.personal.sagapattern.core.transaction.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

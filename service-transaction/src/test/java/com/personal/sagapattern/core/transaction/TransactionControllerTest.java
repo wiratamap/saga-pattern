@@ -1,9 +1,6 @@
 package com.personal.sagapattern.core.transaction;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.personal.sagapattern.core.event_top_up.EventTopUpRepository;
-import com.personal.sagapattern.core.event_top_up.model.dto.TopUpRequest;
-import com.personal.sagapattern.core.event_top_up.model.dto.TopUpResponse;
 import com.personal.sagapattern.core.transaction.model.dto.CreateTransactionRequestDto;
 import com.personal.sagapattern.core.transaction.model.dto.CreateTransactionResponseDto;
 import com.personal.sagapattern.core.transaction.model.dto.DestinationAccountInformationDto;
@@ -34,32 +31,11 @@ class TransactionControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private EventTopUpRepository eventTopUpRepository;
-
-    @Autowired
     private TransactionRepository transactionRepository;
 
     @AfterEach
     void tearDown() {
-        eventTopUpRepository.deleteAll();
         transactionRepository.deleteAll();
-    }
-
-    @Test
-    void topUp_shouldReturnStatusOkAndTopUpResponse_whenPostTransactionsIsInvoked() throws Exception {
-        TopUpRequest topUpRequest = TopUpRequest.builder().cif("000000001").amount(10000).wallet("GO-PAY")
-                .destinationOfFund("00000000").build();
-        String topUpRequestJson = objectMapper.writeValueAsString(topUpRequest);
-        RequestBuilder request = MockMvcRequestBuilders.post("/transactions").content(topUpRequestJson)
-                .contentType(MediaType.APPLICATION_JSON);
-
-        MvcResult result = client.perform(request).andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
-        TopUpResponse topUpResponse = objectMapper.readValue(result.getResponse().getContentAsString(),
-                TopUpResponse.class);
-
-        Assertions.assertEquals(topUpRequest.getCif(), topUpResponse.getCif());
-        Assertions.assertEquals(topUpRequest.getAmount(), topUpResponse.getAmount());
-        Assertions.assertEquals(topUpRequest.getWallet(), topUpResponse.getWallet());
     }
 
     @Test
@@ -71,7 +47,7 @@ class TransactionControllerTest {
                 .destinationAccountInformation(destinationAccountInformationDto).amount(100_000).currency("IDR")
                 .build();
         String createTransactionRequestJson = objectMapper.writeValueAsString(createTransactionRequestDto);
-        RequestBuilder request = MockMvcRequestBuilders.post("/v2/transactions").content(createTransactionRequestJson)
+        RequestBuilder request = MockMvcRequestBuilders.post("/transactions").content(createTransactionRequestJson)
                 .contentType(MediaType.APPLICATION_JSON);
 
         MvcResult result = client.perform(request).andExpect(MockMvcResultMatchers.status().isCreated()).andReturn();

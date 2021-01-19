@@ -6,13 +6,7 @@ import java.util.List;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.common.enumeration.Status;
-import com.personal.sagapattern.core.event_top_up.EventTopUpRepository;
-import com.personal.sagapattern.core.event_top_up.exception.EventNotFoundException;
-import com.personal.sagapattern.core.event_top_up.exception.TransactionDetailNotFoundException;
-import com.personal.sagapattern.core.event_top_up.model.EventTopUp;
-import com.personal.sagapattern.core.event_top_up.model.dto.TopUpEventResult;
-import com.personal.sagapattern.core.event_top_up.model.dto.TopUpRequest;
-import com.personal.sagapattern.core.event_top_up.model.dto.TopUpResponse;
+import com.personal.sagapattern.core.transaction.exception.TransactionDetailNotFoundException;
 import com.personal.sagapattern.core.transaction.model.Transaction;
 import com.personal.sagapattern.core.transaction.model.TransactionDetail;
 import com.personal.sagapattern.core.transaction.model.TransactionType;
@@ -33,31 +27,12 @@ public class TransactionService {
 
     private final SagaOrchestrationService sagaOrchestrationService;
 
-    private final EventTopUpRepository eventTopUpRepository;
-
     private final TransactionRepository transactionRepository;
 
     private final ObjectMapper objectMapper;
 
     @Value("${event.transaction.topics}")
     private List<String> transactionEventTopics;
-
-    public TopUpResponse topUp(TopUpRequest topUpRequest) throws JsonProcessingException {
-        EventTopUp eventTopUp = EventTopUp.builder().cif(topUpRequest.getCif()).amount(topUpRequest.getAmount())
-                .wallet(topUpRequest.getWallet()).destinationOfFund(topUpRequest.getDestinationOfFund())
-                .status(Status.PENDING).build();
-
-        EventTopUp createdEventTopUp = eventTopUpRepository.save(eventTopUp);
-        topUpRequest.setEventId(createdEventTopUp.getId());
-
-        String topUpEventRequest = objectMapper.writeValueAsString(topUpRequest);
-        sagaOrchestrationService.orchestrate(topUpEventRequest, transactionEventTopics);
-
-        return TopUpResponse.builder().eventId(createdEventTopUp.getId()).cif(createdEventTopUp.getCif())
-                .amount(createdEventTopUp.getAmount()).wallet(createdEventTopUp.getWallet())
-                .destinationOfFund(createdEventTopUp.getDestinationOfFund()).status(createdEventTopUp.getStatus())
-                .build();
-    }
 
     private TransactionDetail getTransactionDetailByTransactionType(Transaction createdTransaction,
             TransactionType transactionType) {
@@ -105,14 +80,5 @@ public class TransactionService {
         this.orchestrateTransactionRequest(createdTransaction);
 
         return createdTransaction;
-    }
-
-    public void updateStatus(TopUpEventResult topUpEventResult, Status status) {
-        EventTopUp eventTopUp = eventTopUpRepository.findById(topUpEventResult.getEventId())
-                .orElseThrow(EventNotFoundException::new);
-        eventTopUp.setStatus(status);
-        eventTopUp.setReason(topUpEventResult.getReason());
-
-        eventTopUpRepository.save(eventTopUp);
     }
 }
