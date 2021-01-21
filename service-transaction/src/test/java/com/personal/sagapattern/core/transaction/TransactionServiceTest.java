@@ -6,15 +6,18 @@ import static org.mockito.Mockito.clearInvocations;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.common.enumeration.Status;
 import com.personal.sagapattern.core.transaction.exception.TransactionDetailNotFoundException;
+import com.personal.sagapattern.core.transaction.exception.TransactionNotFoundException;
 import com.personal.sagapattern.core.transaction.model.Transaction;
 import com.personal.sagapattern.core.transaction.model.dto.CreateTransactionRequestDto;
 import com.personal.sagapattern.core.transaction.model.dto.DestinationAccountInformationDto;
+import com.personal.sagapattern.core.transaction.model.event.EventTransactionResponse;
 import com.personal.sagapattern.orchestration.service.SagaOrchestrationService;
 
 import org.junit.jupiter.api.AfterEach;
@@ -23,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -46,6 +50,9 @@ class TransactionServiceTest {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     private UUID mockEventId = UUID.fromString("7b5f770a-68e9-4723-bcad-8cb8c12f362d");
+
+    private EventTransactionResponse eventTransactionResponse = EventTransactionResponse.builder().amount(100_000)
+            .currency("IDR").eventId(mockEventId).build();
 
     private void mockSaveOnTransactionRepository() {
         Mockito.when(transactionRepository.save(any(Transaction.class))).then(new Answer<Transaction>() {
@@ -117,5 +124,28 @@ class TransactionServiceTest {
         Assertions.assertThrows(TransactionDetailNotFoundException.class, createAction);
         Mockito.verify(sagaOrchestrationService, Mockito.never()).orchestrate(Mockito.anyString(),
                 Mockito.eq(eventTopics));
+    }
+
+    @Test
+    void updateStatus_shouldSaveTransactionWithSuccessStatus_whenNewStatusIsSuccess() {
+        ArgumentCaptor<Transaction> eventTransactionArgumentCaptor = ArgumentCaptor.forClass(Transaction.class);
+        Transaction transaction = new Transaction();
+        transaction.setStatus(Status.SUCCESS);
+        Mockito.when(this.transactionRepository.findById(mockEventId)).thenReturn(Optional.of(transaction));
+
+        this.transactionService.updateStatus(eventTransactionResponse, Status.SUCCESS);
+
+        Mockito.verify(this.transactionRepository).save(eventTransactionArgumentCaptor.capture());
+        Assertions.assertEquals(Status.SUCCESS, eventTransactionArgumentCaptor.getValue().getStatus());
+    }
+
+    @Test
+    void updateStatus_shouldNotUpdateStatusAndThrowTransactionEventNotFoundException_whenTransactionIsNotFound() {
+        Mockito.when(this.transactionRepository.findById(mockEventId)).thenReturn(Optional.empty());
+
+        Executable updateStatusAction = () -> transactionService.updateStatus(eventTransactionResponse, Status.SUCCESS);
+
+        Mockito.verify(this.transactionRepository, Mockito.never()).save(Mockito.any(Transaction.class));
+        Assertions.assertThrows(TransactionNotFoundException.class, updateStatusAction);
     }
 }

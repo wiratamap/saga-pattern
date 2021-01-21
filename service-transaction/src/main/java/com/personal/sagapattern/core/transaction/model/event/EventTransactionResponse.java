@@ -2,7 +2,7 @@ package com.personal.sagapattern.core.transaction.model.event;
 
 import java.util.UUID;
 
-import com.personal.sagapattern.common.model.Disposable;
+import com.personal.sagapattern.common.model.DataTransferAble;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EventTransactionRequest implements Disposable {
+public class EventTransactionResponse implements DataTransferAble {
     private UUID eventId;
     private UUID id;
     private long amount;
@@ -21,4 +21,5 @@ public class EventTransactionRequest implements Disposable {
     private String note;
     private EventTransactionAccountInformation sourceAccountInformation;
     private EventTransactionAccountInformation destinationAccountInformation;
+    private String failReason;
 }

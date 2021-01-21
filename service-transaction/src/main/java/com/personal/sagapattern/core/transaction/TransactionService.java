@@ -7,12 +7,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.common.enumeration.Status;
 import com.personal.sagapattern.core.transaction.exception.TransactionDetailNotFoundException;
+import com.personal.sagapattern.core.transaction.exception.TransactionNotFoundException;
 import com.personal.sagapattern.core.transaction.model.Transaction;
 import com.personal.sagapattern.core.transaction.model.TransactionDetail;
 import com.personal.sagapattern.core.transaction.model.TransactionType;
 import com.personal.sagapattern.core.transaction.model.dto.CreateTransactionRequestDto;
 import com.personal.sagapattern.core.transaction.model.event.EventTransactionAccountInformation;
 import com.personal.sagapattern.core.transaction.model.event.EventTransactionRequest;
+import com.personal.sagapattern.core.transaction.model.event.EventTransactionResponse;
 import com.personal.sagapattern.orchestration.service.SagaOrchestrationService;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -80,5 +82,14 @@ public class TransactionService {
         this.orchestrateTransactionRequest(createdTransaction);
 
         return createdTransaction;
+    }
+
+    public void updateStatus(EventTransactionResponse transactionEventResult, Status status) {
+        Transaction transaction = this.transactionRepository.findById(transactionEventResult.getEventId())
+                .orElseThrow(TransactionNotFoundException::new);
+        transaction.setStatus(status);
+        transaction.setFailReason(transactionEventResult.getFailReason());
+
+        this.transactionRepository.save(transaction);
     }
 }
