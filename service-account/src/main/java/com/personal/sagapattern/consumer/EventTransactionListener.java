@@ -30,7 +30,7 @@ public class EventTransactionListener {
         logger.info("Event detected, data: {}", eventTransactionRequest);
         logger.info("START ::: Processing Event");
 
-        // accountService.topUp(eventTransactionRequest);
+        accountService.processTransaction(eventTransactionRequest);
 
         logger.info("FINISH ::: Processing Event");
     }

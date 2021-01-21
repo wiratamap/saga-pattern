@@ -1,4 +1,4 @@
-package com.personal.sagapattern.core.service;
+package com.personal.sagapattern.core;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -9,8 +9,6 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.personal.sagapattern.core.AccountRepository;
-import com.personal.sagapattern.core.AccountService;
 import com.personal.sagapattern.core.exception.AccountNotFoundException;
 import com.personal.sagapattern.core.exception.ExceededBalanceException;
 import com.personal.sagapattern.core.model.Account;
