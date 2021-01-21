@@ -1,13 +1,7 @@
 package com.personal.sagapattern.core.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.clearInvocations;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
@@ -20,12 +14,14 @@ import com.personal.sagapattern.core.AccountService;
 import com.personal.sagapattern.core.exception.AccountNotFoundException;
 import com.personal.sagapattern.core.exception.ExceededBalanceException;
 import com.personal.sagapattern.core.model.Account;
-import com.personal.sagapattern.core.model.dto.TopUpEventResponse;
-import com.personal.sagapattern.core.model.dto.TopUpRequest;
-import com.personal.sagapattern.core.model.dto.TransferRequest;
+import com.personal.sagapattern.core.model.AccountDetail;
+import com.personal.sagapattern.core.model.event.EventTransactionAccountInformation;
+import com.personal.sagapattern.core.model.event.EventTransactionRequest;
+import com.personal.sagapattern.core.model.event.TransactionType;
 import com.personal.sagapattern.orchestration.service.SagaOrchestrationService;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +29,9 @@ import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
@@ -46,125 +44,160 @@ class AccountServiceTest {
     @Mock
     private AccountRepository accountRepository;
 
-    private List<String> transferEventTopics = Collections.singletonList("EVENT_TRANSFER_REQUEST");
-    private List<String> failedTopUpEventTopics = Collections.singletonList("EVENT_FAILED_TOP_UP_RESPONSE");
-    private List<String> successTopUpEventTopics = Collections.singletonList("EVENT_SUCCESS_TOP_UP_RESPONSE");
+    private List<String> failedTransactionEventTopics = Collections.singletonList("EVENT_FAILED_TRANSACTION_RESPONSE");
+    private List<String> successTransactionEventTopics = Collections
+            .singletonList("EVENT_SUCCESS_TRANSACTION_RESPONSE");
     private List<String> accountUpdatedEventTopics = Collections.singletonList("EVENT_ACCOUNT_UPDATED");
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private String cif = "00000001";
-    private int balance = 100000;
-    private int topUpAmount = 10000;
-    private String destinationOfFund = "00000000";
-    private String wallet = "GO-PAY";
+    private String sourceExternalAccountNumber = "00000000";
+    private long sourceAccountBalance = 1_000_000;
+    private String destinationExternalAccountNumber = "00000001";
+    private long destinationAccountBalance = 1_000_000;
     private UUID mockEventId = UUID.fromString("7b5f770a-68e9-4723-bcad-8cb8c12f362d");
+    private int amount = 100_000;
+    private String meBankAccountProvider = "MeBank";
 
     @BeforeEach
     void setUp() {
         accountService = new AccountService(accountRepository, sagaOrchestrationService, objectMapper,
-                transferEventTopics, failedTopUpEventTopics, successTopUpEventTopics, accountUpdatedEventTopics);
+                failedTransactionEventTopics, successTransactionEventTopics, accountUpdatedEventTopics);
     }
 
     @AfterEach
     void tearDown() {
-        clearInvocations(accountRepository);
+        Mockito.clearInvocations(this.accountRepository);
     }
 
-    private void mockAccountIsExistWithFindByIdOnAccountRepository() {
-        Account account = Account.builder().cif(cif).balance(balance).build();
-        when(accountRepository.findByCif(anyString())).thenReturn(account);
-    }
-
-    @Test
-    void topUp_shouldDeductBalanceAndOrchestrateTransferEvent_whenAccountIsExist() throws JsonProcessingException {
-        int expectedNewBalance = 90000;
-        TopUpRequest topUpRequest = TopUpRequest.builder().eventId(mockEventId).cif(cif).amount(topUpAmount)
-                .wallet(wallet).destinationOfFund(destinationOfFund).build();
-        TransferRequest transferRequest = TransferRequest.builder().eventId(mockEventId).cif(cif).amount(topUpAmount)
-                .destinationOfFund(destinationOfFund).build();
-        String transferEventRequest = objectMapper.writeValueAsString(transferRequest);
-        ArgumentCaptor<Account> account = ArgumentCaptor.forClass(Account.class);
-        mockAccountIsExistWithFindByIdOnAccountRepository();
-
-        accountService.topUp(topUpRequest);
-
-        verify(accountRepository).save(account.capture());
-        assertEquals(expectedNewBalance, account.getValue().getBalance());
-        verify(sagaOrchestrationService).orchestrate(transferEventRequest, transferEventTopics);
-    }
-
-    @Test
-    void topUp_shouldNotDeductBalanceAndOrchestrateTransferEvent_whenAccountIsNotFound()
-            throws JsonProcessingException {
-        TopUpRequest topUpRequest = TopUpRequest.builder().eventId(mockEventId).cif(cif).amount(topUpAmount)
-                .wallet(wallet).destinationOfFund(destinationOfFund).build();
-        String reason = "Source account with CIF " + cif + " not found";
-        TopUpEventResponse failedTopUp = TopUpEventResponse.builder().eventId(mockEventId).cif(topUpRequest.getCif())
-                .amount(topUpRequest.getAmount()).wallet(topUpRequest.getWallet())
-                .destinationOfFund(topUpRequest.getDestinationOfFund()).reason(reason).build();
-        String failedTopUpEvent = objectMapper.writeValueAsString(failedTopUp);
-        when(accountRepository.findByCif(cif)).thenReturn(null);
-
-        Executable topUpAction = () -> accountService.topUp(topUpRequest);
-
-        verify(accountRepository, never()).save(any(Account.class));
-        assertThrows(AccountNotFoundException.class, topUpAction);
-        verify(sagaOrchestrationService).orchestrate(failedTopUpEvent, failedTopUpEventTopics);
-    }
-
-    @Test
-    void topUp_shouldNotDeductBalanceAndOrchestrateTransferEvent_whenTopUpAmountExceedsAccountBalance()
-            throws JsonProcessingException {
-        int topUpAmount = 500000;
-        TopUpRequest topUpRequest = TopUpRequest.builder().eventId(mockEventId).cif(cif).amount(topUpAmount)
-                .wallet(wallet).destinationOfFund(destinationOfFund).build();
-        TopUpEventResponse failedTopUp = TopUpEventResponse.builder().eventId(mockEventId).cif(topUpRequest.getCif())
-                .amount(topUpRequest.getAmount()).wallet(topUpRequest.getWallet())
-                .destinationOfFund(topUpRequest.getDestinationOfFund()).reason("Top-up amount exceeds account balance")
+    private void mockSourceAccountWhenFindByExternalAccountNumberIsExist() {
+        AccountDetail sourceAccountDetail = AccountDetail.builder()
+                .externalAccountNumber(this.sourceExternalAccountNumber).build();
+        Account sourceAccount = Account.builder().balance(this.sourceAccountBalance).accountDetail(sourceAccountDetail)
                 .build();
-        String failedTopUpEvent = objectMapper.writeValueAsString(failedTopUp);
-        mockAccountIsExistWithFindByIdOnAccountRepository();
+        Mockito.when(accountRepository.findByAccountDetailExternalAccountNumber(this.sourceExternalAccountNumber))
+                .thenReturn(sourceAccount);
+    }
 
-        Executable topUpAction = () -> accountService.topUp(topUpRequest);
+    private void mockDestinationAccountWhenFindByExternalAccountNumberIsExist() {
+        AccountDetail destinationAccountDetail = AccountDetail.builder()
+                .externalAccountNumber(this.destinationExternalAccountNumber).build();
+        Account destinationAccount = Account.builder().balance(this.destinationAccountBalance)
+                .accountDetail(destinationAccountDetail).build();
+        Mockito.when(accountRepository.findByAccountDetailExternalAccountNumber(this.destinationExternalAccountNumber))
+                .thenReturn(destinationAccount);
+    }
 
-        verify(accountRepository, never()).save(any(Account.class));
-        assertThrows(ExceededBalanceException.class, topUpAction);
-        verify(sagaOrchestrationService).orchestrate(failedTopUpEvent, failedTopUpEventTopics);
+    private void mockSaveOnAccountRepository() {
+        Mockito.when(this.accountRepository.save(any(Account.class))).then(new Answer<Account>() {
+            @Override
+            public Account answer(InvocationOnMock invocation) throws Throwable {
+                Account transaction = invocation.getArgument(0);
+                transaction.setId(mockEventId);
+
+                return transaction;
+            }
+        });
     }
 
     @Test
-    void topUp_shouldDeductBalanceAndOrchestrateSuccessTopUpEvent_whenAccountIsExist() throws JsonProcessingException {
-        int expectedNewBalance = 90000;
-        TopUpRequest topUpRequest = TopUpRequest.builder().eventId(mockEventId).cif(cif).amount(topUpAmount)
-                .wallet(wallet).destinationOfFund(destinationOfFund).build();
-        TopUpEventResponse successTopUp = TopUpEventResponse.builder().eventId(mockEventId).cif(topUpRequest.getCif())
-                .amount(topUpRequest.getAmount()).wallet(topUpRequest.getWallet())
-                .destinationOfFund(topUpRequest.getDestinationOfFund()).reason("SUCCESS").build();
-        String successTopUpEvent = objectMapper.writeValueAsString(successTopUp);
-        ArgumentCaptor<Account> account = ArgumentCaptor.forClass(Account.class);
-        mockAccountIsExistWithFindByIdOnAccountRepository();
-
-        accountService.topUp(topUpRequest);
-
-        verify(accountRepository).save(account.capture());
-        assertEquals(expectedNewBalance, account.getValue().getBalance());
-        verify(sagaOrchestrationService).orchestrate(successTopUpEvent, successTopUpEventTopics);
-    }
-
-    @Test
-    void topUp_shouldDeductBalanceAndOrchestrateAccountUpdatedEvent_whenAccountIsExist()
+    void processTransaction_shouldDeductBalanceAndOrchestrateAccountUpdatedEvent_whenSourceAccountIsExist()
             throws JsonProcessingException {
-        int expectedNewBalance = 90000;
-        TopUpRequest topUpRequest = TopUpRequest.builder().eventId(mockEventId).cif(cif).amount(topUpAmount)
-                .wallet(wallet).destinationOfFund(destinationOfFund).build();
+        long expectedSourceAccountBalance = 900_000;
+        EventTransactionAccountInformation sourceAccountInformation = EventTransactionAccountInformation.builder()
+                .accountProvider(this.meBankAccountProvider).externalAccountNumber(this.sourceExternalAccountNumber)
+                .build();
+        EventTransactionAccountInformation destinationAccountInformation = EventTransactionAccountInformation.builder()
+                .accountProvider("GO-PAY").externalAccountNumber(this.destinationExternalAccountNumber).build();
+        EventTransactionRequest eventTransactionRequest = EventTransactionRequest.builder().amount(this.amount)
+                .currency("IDR").id(this.mockEventId).eventId(this.mockEventId)
+                .sourceAccountInformation(sourceAccountInformation)
+                .destinationAccountInformation(destinationAccountInformation).build();
         ArgumentCaptor<Account> account = ArgumentCaptor.forClass(Account.class);
-        mockAccountIsExistWithFindByIdOnAccountRepository();
+        this.mockSourceAccountWhenFindByExternalAccountNumberIsExist();
 
-        accountService.topUp(topUpRequest);
+        this.accountService.processTransaction(eventTransactionRequest);
 
-        verify(accountRepository).save(account.capture());
-        assertEquals(expectedNewBalance, account.getValue().getBalance());
-        verify(sagaOrchestrationService).orchestrate(Mockito.anyString(), Mockito.eq(accountUpdatedEventTopics));
+        Mockito.verify(this.accountRepository).save(account.capture());
+        Assertions.assertEquals(expectedSourceAccountBalance, account.getValue().getBalance());
+        Mockito.verify(this.sagaOrchestrationService).orchestrate(Mockito.anyString(),
+                Mockito.eq(accountUpdatedEventTopics));
+        Mockito.verify(this.sagaOrchestrationService).orchestrate(Mockito.anyString(),
+                Mockito.eq(successTransactionEventTopics));
+    }
+
+    @Test
+    void processTransaction_shouldDeductSourceAndAddDestinationBalanceThenOrchestrateAccountUpdatedEvent_whenSourceAccountAndDestinationIsExist()
+            throws JsonProcessingException {
+        long expectedSourceAccountBalance = 900_000;
+        long expectedDestinationAccountBalance = 1_100_000;
+        EventTransactionAccountInformation sourceAccountInformation = EventTransactionAccountInformation.builder()
+                .accountHolderName("John Doe").accountProvider(this.meBankAccountProvider)
+                .externalAccountNumber(this.sourceExternalAccountNumber).transactionType(TransactionType.DEBIT).build();
+        EventTransactionAccountInformation destinationAccountInformation = EventTransactionAccountInformation.builder()
+                .accountHolderName("Bertha Doe").accountProvider(this.meBankAccountProvider)
+                .externalAccountNumber(this.destinationExternalAccountNumber).transactionType(TransactionType.CREDIT)
+                .build();
+        EventTransactionRequest eventTransactionRequest = EventTransactionRequest.builder().amount(this.amount)
+                .currency("IDR").id(this.mockEventId).eventId(this.mockEventId)
+                .sourceAccountInformation(sourceAccountInformation)
+                .destinationAccountInformation(destinationAccountInformation).build();
+        ArgumentCaptor<Account> account = ArgumentCaptor.forClass(Account.class);
+        this.mockSourceAccountWhenFindByExternalAccountNumberIsExist();
+        this.mockDestinationAccountWhenFindByExternalAccountNumberIsExist();
+        this.mockSaveOnAccountRepository();
+
+        this.accountService.processTransaction(eventTransactionRequest);
+
+        Mockito.verify(this.accountRepository, Mockito.times(2)).save(account.capture());
+        Assertions.assertEquals(expectedSourceAccountBalance, account.getAllValues().get(0).getBalance());
+        Assertions.assertEquals(expectedDestinationAccountBalance, account.getAllValues().get(1).getBalance());
+        Mockito.verify(this.sagaOrchestrationService, Mockito.times(2)).orchestrate(Mockito.anyString(),
+                Mockito.eq(accountUpdatedEventTopics));
+    }
+
+    @Test
+    void processTransaction_shouldNotDeductBalanceAndOrchestrateTransferEvent_whenAccountIsNotFound()
+            throws JsonProcessingException {
+        EventTransactionAccountInformation sourceAccountInformation = EventTransactionAccountInformation.builder()
+                .accountProvider(this.meBankAccountProvider).externalAccountNumber(this.sourceExternalAccountNumber)
+                .build();
+        EventTransactionAccountInformation destinationAccountInformation = EventTransactionAccountInformation.builder()
+                .accountProvider("GO-PAY").externalAccountNumber(this.destinationExternalAccountNumber).build();
+        EventTransactionRequest eventTransactionRequest = EventTransactionRequest.builder().amount(this.amount)
+                .currency("IDR").id(this.mockEventId).eventId(this.mockEventId)
+                .sourceAccountInformation(sourceAccountInformation)
+                .destinationAccountInformation(destinationAccountInformation).build();
+        Mockito.when(this.accountRepository.findByAccountDetailExternalAccountNumber(this.sourceExternalAccountNumber))
+                .thenReturn(null);
+
+        Executable processTransactionAction = () -> accountService.processTransaction(eventTransactionRequest);
+
+        Mockito.verify(this.accountRepository, Mockito.never()).save(any(Account.class));
+        Assertions.assertThrows(AccountNotFoundException.class, processTransactionAction);
+        verify(sagaOrchestrationService).orchestrate(Mockito.anyString(), Mockito.eq(failedTransactionEventTopics));
+    }
+
+    @Test
+    void processTransaction_shouldNotDeductBalanceAndOrchestrateTransactionFailedEvent_whenTransactionAmountExceedsAccountBalance()
+            throws JsonProcessingException {
+        int exceedingAmount = 50_000_000;
+        EventTransactionAccountInformation sourceAccountInformation = EventTransactionAccountInformation.builder()
+                .accountProvider(this.meBankAccountProvider).externalAccountNumber(this.sourceExternalAccountNumber)
+                .build();
+        EventTransactionAccountInformation destinationAccountInformation = EventTransactionAccountInformation.builder()
+                .accountProvider("GO-PAY").externalAccountNumber(this.destinationExternalAccountNumber).build();
+        EventTransactionRequest eventTransactionRequest = EventTransactionRequest.builder().amount(exceedingAmount)
+                .currency("IDR").id(this.mockEventId).eventId(this.mockEventId)
+                .sourceAccountInformation(sourceAccountInformation)
+                .destinationAccountInformation(destinationAccountInformation).build();
+        this.mockSourceAccountWhenFindByExternalAccountNumberIsExist();
+
+        Executable processTransactionAction = () -> this.accountService.processTransaction(eventTransactionRequest);
+
+        Mockito.verify(this.accountRepository, Mockito.never()).save(any(Account.class));
+        Assertions.assertThrows(ExceededBalanceException.class, processTransactionAction);
+        Mockito.verify(sagaOrchestrationService).orchestrate(Mockito.anyString(),
+                Mockito.eq(failedTransactionEventTopics));
     }
 }
