@@ -15,12 +15,11 @@ import com.personal.sagapattern.core.transaction.model.event.EventTransactionReq
 import com.personal.sagapattern.core.transaction.model.event.EventTransactionResponse;
 import com.personal.sagapattern.orchestration.service.SagaOrchestrationService;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,20 +28,26 @@ class EventTransactionFailedListenerTest {
     private TransactionService transactionService;
 
     @Mock
-	private SagaOrchestrationService sagaOrchestrationService;
+    private SagaOrchestrationService sagaOrchestrationService;
 
-    @Spy
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @InjectMocks
     private EventTransactionFailedListener eventTransactionFailedListener;
 
     private final List<String> deadLetterTopics = Collections.singletonList("DEAD_LETTER_QUEUE");
+
     private final List<String> originTopics = Arrays.asList("EVENT_TRANSACTION_REQUEST", "SURROUNDING_NOTIFICATION",
-			"TRANSFER_NOTIFICATION");
+            "TRANSFER_NOTIFICATION");
+
+    @BeforeEach
+    public void setUp() {
+        this.eventTransactionFailedListener = new EventTransactionFailedListener(transactionService, objectMapper,
+                sagaOrchestrationService, deadLetterTopics, originTopics);
+    }
 
     @Test
-    void consume_shouldInvokeUpdateStatusWithTopUpRequestAndFailedStatusAndDisposeMessageIntoDeadLetterQueueTopics() throws JsonProcessingException {
+    void consume_shouldInvokeUpdateStatusWithTopUpRequestAndFailedStatusAndDisposeMessageIntoDeadLetterQueueTopics()
+            throws JsonProcessingException {
         EventTransactionResponse eventTransactionResponse = EventTransactionResponse.builder().amount(100_000)
                 .currency("IDR").eventId(UUID.randomUUID()).failReason("FAILED CLAUSE").build();
         EventTransactionRequest originalMessage = eventTransactionResponse.convertTo(EventTransactionRequest.class);
