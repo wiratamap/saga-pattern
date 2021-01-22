@@ -6,5 +6,6 @@ mvn clean test
 cd ../
 cd ./service-dlq-platform
 mvn clean test
+cd ../
 cd ./service-account-search
 mvn clean test

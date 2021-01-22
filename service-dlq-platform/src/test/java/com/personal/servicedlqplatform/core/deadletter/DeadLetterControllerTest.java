@@ -45,20 +45,17 @@ class DeadLetterControllerTest {
     private DeadLetter deadLetter() {
         OriginTopic originalTopic = OriginTopic.builder().name("ORIGINAL_TOPIC").build();
         List<OriginTopic> originTopics = Collections.singletonList(originalTopic);
-        return DeadLetter.builder().originalMessage("something").reason("fail reason").originTopics(originTopics)
-                .build();
+        return DeadLetter.builder().originalMessage("{\"name\": \"John Doe\"}").reason("fail reason")
+                .originTopics(originTopics).build();
     }
 
     @Test
     void fetchAll_shouldReturnStatusOkAndAvailableDeadLetters_whenGetDeadLettersIsInvoked() throws Exception {
-        String expectedOriginalMessage = "something";
         String expectedOriginTopic = "ORIGINAL_TOPIC";
         this.deadLetterRepository.save(this.deadLetter());
         RequestBuilder request = MockMvcRequestBuilders.get("/dead-letters");
 
         this.client.perform(request).andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect((ResultMatcher) MockMvcResultMatchers.jsonPath("$[0].originalMessage",
-                        Matchers.equalTo(expectedOriginalMessage)))
                 .andExpect((ResultMatcher) MockMvcResultMatchers.jsonPath("$[0].originTopics[0].name",
                         Matchers.equalTo(expectedOriginTopic)));
     }
