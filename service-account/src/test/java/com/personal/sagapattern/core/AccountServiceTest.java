@@ -90,10 +90,12 @@ class AccountServiceTest {
         Mockito.when(this.accountRepository.save(any(Account.class))).then(new Answer<Account>() {
             @Override
             public Account answer(InvocationOnMock invocation) throws Throwable {
-                Account transaction = invocation.getArgument(0);
-                transaction.setId(mockEventId);
+                AccountDetail accountDetail = new AccountDetail();
+                Account account = invocation.getArgument(0);
+                account.setId(mockEventId);
+                account.setAccountDetail(accountDetail);
 
-                return transaction;
+                return account;
             }
         });
     }
@@ -113,6 +115,7 @@ class AccountServiceTest {
                 .destinationAccountInformation(destinationAccountInformation).build();
         ArgumentCaptor<Account> account = ArgumentCaptor.forClass(Account.class);
         this.mockSourceAccountWhenFindByExternalAccountNumberIsExist();
+        this.mockSaveOnAccountRepository();
 
         this.accountService.processTransaction(eventTransactionRequest);
 

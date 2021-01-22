@@ -9,6 +9,7 @@ import javax.persistence.OneToOne;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.personal.sagapattern.common.model.AuditModel;
+import com.personal.sagapattern.common.model.DataTransferAble;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +23,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AccountDetail extends AuditModel {
+public class AccountDetail extends AuditModel implements DataTransferAble {
     @Column
     private String externalAccountNumber;
 

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.core.exception.AccountNotFoundException;
 import com.personal.sagapattern.core.exception.ExceededBalanceException;
 import com.personal.sagapattern.core.model.Account;
+import com.personal.sagapattern.core.model.event.EventTransactionAccountInformation;
 import com.personal.sagapattern.core.model.event.EventTransactionRequest;
 import com.personal.sagapattern.core.model.event.EventTransactionResponse;
 import com.personal.sagapattern.core.model.event.TransactionType;
@@ -62,8 +63,17 @@ public class AccountService {
             Account sourceAccount, Account destinationAccount) throws JsonProcessingException {
         logger.info("Success processing transaction, data: {}", eventTransactionRequest);
 
+        EventTransactionAccountInformation sourceAccountInformation = sourceAccount.getAccountDetail()
+                .convertTo(EventTransactionAccountInformation.class);
+        eventTransactionRequest.setSourceAccountInformation(sourceAccountInformation);
+
+        if (!Objects.isNull(destinationAccount)) {
+            EventTransactionAccountInformation destinationAccountInformation = destinationAccount.getAccountDetail()
+                    .convertTo(EventTransactionAccountInformation.class);
+            eventTransactionRequest.setDestinationAccountInformation(destinationAccountInformation);
+        }
         String successTransactionEventResponse = this.buildTransactionEventResponseMessage(eventTransactionRequest,
-                "SUCCESS");
+                null);
         String sourceAccountUpdatedEvent = this.objectMapper.writeValueAsString(sourceAccount);
         String destinationAccountUpdatedEvent = this.objectMapper.writeValueAsString(destinationAccount);
 
