@@ -21,3 +21,5 @@ jobs:
       run: mvn -B test --file service-dlq-platform/pom.xml
     - name: Account Search Service Test
       run: mvn -B test --file service-account-search/pom.xml
+    - name: Authentication Service Test
+      run: mvn -B test --file service-authentication/pom.xml
