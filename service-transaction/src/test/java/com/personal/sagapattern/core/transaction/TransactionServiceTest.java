@@ -12,7 +12,6 @@ import java.util.UUID;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.personal.sagapattern.common.enumeration.Status;
-import com.personal.sagapattern.core.transaction.exception.TransactionDetailNotFoundException;
 import com.personal.sagapattern.core.transaction.exception.TransactionNotFoundException;
 import com.personal.sagapattern.core.transaction.model.Transaction;
 import com.personal.sagapattern.core.transaction.model.TransactionDetail;
@@ -66,19 +65,6 @@ class TransactionServiceTest {
             public Transaction answer(InvocationOnMock invocation) throws Throwable {
                 Transaction transaction = invocation.getArgument(0);
                 transaction.setId(mockEventId);
-
-                return transaction;
-            }
-        });
-    }
-
-    private void mockEmptyTransactionDetailsSaveOnTransactionRepository() {
-        Mockito.when(transactionRepository.save(any(Transaction.class))).then(new Answer<Transaction>() {
-            @Override
-            public Transaction answer(InvocationOnMock invocation) throws Throwable {
-                Transaction transaction = invocation.getArgument(0);
-                transaction.setId(mockEventId);
-                transaction.setTransactionDetails(Collections.emptyList());
 
                 return transaction;
             }
