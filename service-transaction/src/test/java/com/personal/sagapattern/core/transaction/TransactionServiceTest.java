@@ -15,8 +15,11 @@ import com.personal.sagapattern.common.enumeration.Status;
 import com.personal.sagapattern.core.transaction.exception.TransactionDetailNotFoundException;
 import com.personal.sagapattern.core.transaction.exception.TransactionNotFoundException;
 import com.personal.sagapattern.core.transaction.model.Transaction;
+import com.personal.sagapattern.core.transaction.model.TransactionDetail;
+import com.personal.sagapattern.core.transaction.model.TransactionType;
 import com.personal.sagapattern.core.transaction.model.dto.CreateTransactionRequestDto;
 import com.personal.sagapattern.core.transaction.model.dto.DestinationAccountInformationDto;
+import com.personal.sagapattern.core.transaction.model.event.EventTransactionAccountInformation;
 import com.personal.sagapattern.core.transaction.model.event.EventTransactionResponse;
 import com.personal.sagapattern.orchestration.service.SagaOrchestrationService;
 
@@ -51,8 +54,11 @@ class TransactionServiceTest {
 
     private UUID mockEventId = UUID.fromString("7b5f770a-68e9-4723-bcad-8cb8c12f362d");
 
+    private EventTransactionAccountInformation eventTransactionInformation = EventTransactionAccountInformation
+            .builder().accountHolderName("John Doe").accountProvider("MeBank").externalAccountNumber("0123456789")
+            .transactionType(TransactionType.DEBIT).build();
     private EventTransactionResponse eventTransactionResponse = EventTransactionResponse.builder().amount(100_000)
-            .currency("IDR").eventId(mockEventId).build();
+            .currency("IDR").eventId(mockEventId).sourceAccountInformation(eventTransactionInformation).build();
 
     private void mockSaveOnTransactionRepository() {
         Mockito.when(transactionRepository.save(any(Transaction.class))).then(new Answer<Transaction>() {
@@ -129,7 +135,10 @@ class TransactionServiceTest {
     @Test
     void updateStatus_shouldSaveTransactionWithSuccessStatus_whenNewStatusIsSuccess() {
         ArgumentCaptor<Transaction> eventTransactionArgumentCaptor = ArgumentCaptor.forClass(Transaction.class);
-        Transaction transaction = new Transaction();
+        TransactionDetail transactionDetail = TransactionDetail.builder().accountHolderName("John Doe")
+                .accountProvider("MeBank").transactionType(TransactionType.DEBIT).build();
+        Transaction transaction = Transaction.builder().transactionDetails(Collections.singletonList(transactionDetail))
+                .build();
         transaction.setStatus(Status.SUCCESS);
         Mockito.when(this.transactionRepository.findById(mockEventId)).thenReturn(Optional.of(transaction));
 

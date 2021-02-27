@@ -53,12 +53,10 @@ public class TransactionService {
                 .convertTo(EventTransactionAccountInformation.class);
         EventTransactionAccountInformation destinationAccount = creditedAccount
                 .convertTo(EventTransactionAccountInformation.class);
-        EventTransactionRequest transactionRequest = EventTransactionRequest.builder()
-                .id(createdTransaction.getId())
-                .eventId(createdTransaction.getId())
-                .amount(createdTransaction.getAmount()).currency(createdTransaction.getCurrency())
-                .note(createdTransaction.getNote()).sourceAccountInformation(sourceAccount)
-                .destinationAccountInformation(destinationAccount).build();
+        EventTransactionRequest transactionRequest = EventTransactionRequest.builder().id(createdTransaction.getId())
+                .eventId(createdTransaction.getId()).amount(createdTransaction.getAmount())
+                .currency(createdTransaction.getCurrency()).note(createdTransaction.getNote())
+                .sourceAccountInformation(sourceAccount).destinationAccountInformation(destinationAccount).build();
         String transactionEventRequest = this.objectMapper.writeValueAsString(transactionRequest);
 
         this.sagaOrchestrationService.orchestrate(transactionEventRequest, transactionEventTopics);
@@ -89,6 +87,14 @@ public class TransactionService {
                 .orElseThrow(TransactionNotFoundException::new);
         transaction.setStatus(status);
         transaction.setFailReason(transactionEventResult.getFailReason());
+
+        TransactionDetail debitedAccount = this.getTransactionDetailByTransactionType(transaction,
+                TransactionType.DEBIT);
+        debitedAccount
+                .setAccountHolderName(transactionEventResult.getSourceAccountInformation().getAccountHolderName());
+        debitedAccount.setExternalAccountNumber(
+                transactionEventResult.getSourceAccountInformation().getExternalAccountNumber());
+        debitedAccount.setAccountProvider(transactionEventResult.getSourceAccountInformation().getAccountProvider());
 
         this.transactionRepository.save(transaction);
     }
