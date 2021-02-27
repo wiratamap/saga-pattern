@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.personal.sagapattern.common.constant.BankConstant;
 import com.personal.sagapattern.core.exception.AccountNotFoundException;
 import com.personal.sagapattern.core.exception.ExceededBalanceException;
 import com.personal.sagapattern.core.model.Account;
@@ -65,6 +66,7 @@ public class AccountService {
 
         EventTransactionAccountInformation sourceAccountInformation = sourceAccount.getAccountDetail()
                 .convertTo(EventTransactionAccountInformation.class);
+        sourceAccountInformation.setAccountProvider(BankConstant.BANK_DISPLAY_NAME);
         eventTransactionRequest.setSourceAccountInformation(sourceAccountInformation);
 
         if (!Objects.isNull(destinationAccount)) {
@@ -115,7 +117,7 @@ public class AccountService {
                 TransactionType.DEBIT);
         Account destinationAccount = null;
 
-        if (eventTransactionRequest.getDestinationAccountInformation().getAccountProvider().equals("MeBank")) {
+        if (eventTransactionRequest.getDestinationAccountInformation().getAccountProvider().equals(BankConstant.BANK_DISPLAY_NAME)) {
             String destinationExternalAccountNumber = eventTransactionRequest.getDestinationAccountInformation()
                     .getExternalAccountNumber();
             destinationAccount = this.updateAccountBalance(destinationExternalAccountNumber, eventTransactionRequest,

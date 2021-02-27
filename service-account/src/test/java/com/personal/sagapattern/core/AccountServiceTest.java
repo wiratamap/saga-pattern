@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.personal.sagapattern.common.constant.BankConstant;
 import com.personal.sagapattern.core.exception.AccountNotFoundException;
 import com.personal.sagapattern.core.exception.ExceededBalanceException;
 import com.personal.sagapattern.core.model.Account;
@@ -55,7 +56,6 @@ class AccountServiceTest {
     private long destinationAccountBalance = 1_000_000;
     private UUID mockEventId = UUID.fromString("7b5f770a-68e9-4723-bcad-8cb8c12f362d");
     private int amount = 100_000;
-    private String meBankAccountProvider = "MeBank";
 
     @BeforeEach
     void setUp() {
@@ -105,7 +105,7 @@ class AccountServiceTest {
             throws JsonProcessingException {
         long expectedSourceAccountBalance = 900_000;
         EventTransactionAccountInformation sourceAccountInformation = EventTransactionAccountInformation.builder()
-                .accountProvider(this.meBankAccountProvider).externalAccountNumber(this.sourceExternalAccountNumber)
+                .accountProvider(BankConstant.BANK_DISPLAY_NAME).externalAccountNumber(this.sourceExternalAccountNumber)
                 .build();
         EventTransactionAccountInformation destinationAccountInformation = EventTransactionAccountInformation.builder()
                 .accountProvider("GO-PAY").externalAccountNumber(this.destinationExternalAccountNumber).build();
@@ -133,10 +133,10 @@ class AccountServiceTest {
         long expectedSourceAccountBalance = 900_000;
         long expectedDestinationAccountBalance = 1_100_000;
         EventTransactionAccountInformation sourceAccountInformation = EventTransactionAccountInformation.builder()
-                .accountHolderName("John Doe").accountProvider(this.meBankAccountProvider)
+                .accountHolderName("John Doe").accountProvider(BankConstant.BANK_DISPLAY_NAME)
                 .externalAccountNumber(this.sourceExternalAccountNumber).transactionType(TransactionType.DEBIT).build();
         EventTransactionAccountInformation destinationAccountInformation = EventTransactionAccountInformation.builder()
-                .accountHolderName("Bertha Doe").accountProvider(this.meBankAccountProvider)
+                .accountHolderName("Bertha Doe").accountProvider(BankConstant.BANK_DISPLAY_NAME)
                 .externalAccountNumber(this.destinationExternalAccountNumber).transactionType(TransactionType.CREDIT)
                 .build();
         EventTransactionRequest eventTransactionRequest = EventTransactionRequest.builder().amount(this.amount)
@@ -161,7 +161,7 @@ class AccountServiceTest {
     void processTransaction_shouldNotDeductBalanceAndOrchestrateTransferEvent_whenAccountIsNotFound()
             throws JsonProcessingException {
         EventTransactionAccountInformation sourceAccountInformation = EventTransactionAccountInformation.builder()
-                .accountProvider(this.meBankAccountProvider).externalAccountNumber(this.sourceExternalAccountNumber)
+                .accountProvider(BankConstant.BANK_DISPLAY_NAME).externalAccountNumber(this.sourceExternalAccountNumber)
                 .build();
         EventTransactionAccountInformation destinationAccountInformation = EventTransactionAccountInformation.builder()
                 .accountProvider("GO-PAY").externalAccountNumber(this.destinationExternalAccountNumber).build();
@@ -184,7 +184,7 @@ class AccountServiceTest {
             throws JsonProcessingException {
         int exceedingAmount = 50_000_000;
         EventTransactionAccountInformation sourceAccountInformation = EventTransactionAccountInformation.builder()
-                .accountProvider(this.meBankAccountProvider).externalAccountNumber(this.sourceExternalAccountNumber)
+                .accountProvider(BankConstant.BANK_DISPLAY_NAME).externalAccountNumber(this.sourceExternalAccountNumber)
                 .build();
         EventTransactionAccountInformation destinationAccountInformation = EventTransactionAccountInformation.builder()
                 .accountProvider("GO-PAY").externalAccountNumber(this.destinationExternalAccountNumber).build();

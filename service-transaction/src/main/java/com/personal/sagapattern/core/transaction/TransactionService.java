@@ -62,7 +62,6 @@ public class TransactionService {
         this.sagaOrchestrationService.orchestrate(transactionEventRequest, transactionEventTopics);
     }
 
-    @Transactional(rollbackFor = TransactionDetailNotFoundException.class)
     public Transaction create(CreateTransactionRequestDto createTransactionRequest) throws JsonProcessingException {
         TransactionDetail sourceAccountDetail = TransactionDetail.builder()
                 .externalAccountNumber(createTransactionRequest.getSourceExternalAccountNumber())

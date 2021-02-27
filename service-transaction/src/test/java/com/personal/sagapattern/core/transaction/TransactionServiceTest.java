@@ -116,23 +116,6 @@ class TransactionServiceTest {
     }
 
     @Test
-    void create_shouldThrowTransactionDetailNotFoundException() throws JsonProcessingException {
-        this.mockEmptyTransactionDetailsSaveOnTransactionRepository();
-        DestinationAccountInformationDto destinationAccountInformationDto = DestinationAccountInformationDto.builder()
-                .accountHolderName("Bertha Doe").accountProvider("GO-PAY").externalAccountNumber("987654321").build();
-        CreateTransactionRequestDto createTransactionRequestDto = CreateTransactionRequestDto.builder()
-                .sourceExternalAccountNumber("123456789")
-                .destinationAccountInformation(destinationAccountInformationDto).amount(100_000).currency("IDR")
-                .build();
-
-        Executable createAction = () -> this.transactionService.create(createTransactionRequestDto);
-
-        Assertions.assertThrows(TransactionDetailNotFoundException.class, createAction);
-        Mockito.verify(sagaOrchestrationService, Mockito.never()).orchestrate(Mockito.anyString(),
-                Mockito.eq(eventTopics));
-    }
-
-    @Test
     void updateStatus_shouldSaveTransactionWithSuccessStatus_whenNewStatusIsSuccess() {
         ArgumentCaptor<Transaction> eventTransactionArgumentCaptor = ArgumentCaptor.forClass(Transaction.class);
         TransactionDetail transactionDetail = TransactionDetail.builder().accountHolderName("John Doe")
